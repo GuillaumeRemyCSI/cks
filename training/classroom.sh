@@ -7,6 +7,10 @@
 #   training/classroom.sh access 107
 #   training/classroom.sh down 107 108
 #
+# VMs vierges des exercices officiels LFS460 (Ubuntu 24.04, 2 vCPU / 8 Go, utilisateur student) :
+#   training/classroom.sh up lfs460-single     nœud 'single' (chapitres 2-3)
+#   training/classroom.sh up lfs460-cluster    nœuds 'cp' et 'worker' (chapitre 4 et suivants)
+#
 # Configuration : training/classroom.env (copier classroom.env.example).
 set -euo pipefail
 
@@ -30,7 +34,7 @@ die() { echo "ERREUR : $*" >&2; exit 1; }
 warn() { echo "ATTENTION : $*" >&2; }
 
 usage() {
-  sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'
   exit 1
 }
 
@@ -44,17 +48,32 @@ participants() {
   done
 }
 
-check_lab() {
-  [[ "$1" =~ ^[0-9]{3}$ && -f "$ROOT/tasks/cks/labs/$1/env.hcl" ]] || die "lab inconnu : $1 (attendu : 101 à 115)"
+# Les VMs vierges LFS460 ne passent pas par le Makefile, qui ne connaît que tasks/cks/labs.
+is_nodes() { [[ "$1" == lfs460-* ]]; }
+
+stack_dir() {
+  if is_nodes "$1"; then echo "$ROOT/tasks/cks/lfs460/${1#lfs460-}"; else echo "$ROOT/tasks/cks/labs/$1"; fi
 }
 
-env_dir() { echo "$ROOT/terraform/environments/${1}_${2}_cks-labs"; }
+check_lab() {
+  [[ "$1" =~ ^([0-9]{3}|lfs460-(single|cluster))$ && -f "$(stack_dir "$1")/env.hcl" ]] ||
+    die "lab inconnu : $1 (attendu : 101 à 115, lfs460-single ou lfs460-cluster)"
+}
 
-lab_region() { grep -E '^\s*region\s*=' "$ROOT/tasks/cks/labs/$1/env.hcl" | head -1 | awk -F'"' '{print $2}'; }
+env_dir() {
+  if is_nodes "$2"; then echo "$ROOT/terraform/environments/${1}_${2}"; else echo "$ROOT/terraform/environments/${1}_${2}_cks-labs"; fi
+}
 
-# Nombre d'instances EC2 d'un lab : chaque référence à un type d'instance = une VM (toutes en t3, 2 vCPU).
+lab_region() { grep -E '^\s*region\s*=' "$(stack_dir "$1")/env.hcl" | head -1 | awk -F'"' '{print $2}'; }
+
+# Nombre d'instances EC2 d'un lab, toutes à 2 vCPU (t3) : une VM par référence à un type d'instance,
+# ou par nœud déclaré pour les VMs LFS460.
 lab_instances() {
-  grep -hoE 'instance_type[a-z_]* *= *local\.vars\.locals\.instance_type' "$ROOT/tasks/cks/labs/$1"/*/terragrunt.hcl | wc -l | tr -d ' '
+  if is_nodes "$1"; then
+    grep -E '^\s*nodes\s*=' "$(stack_dir "$1")/env.hcl" | grep -o '"[a-z]*"' | wc -l | tr -d ' '
+  else
+    grep -hoE 'instance_type[a-z_]* *= *local\.vars\.locals\.instance_type' "$(stack_dir "$1")"/*/terragrunt.hcl | wc -l | tr -d ' '
+  fi
 }
 
 quota() {
@@ -82,7 +101,12 @@ cmd_preflight() {
     echo "State Terraform : s3://$bucket"
   fi
 
-  if [[ -z "${CKS_REPO:-}" || "$CKS_REPO" == "$UPSTREAM_REPO" ]]; then
+  # Les VMs LFS460 ne téléchargent rien depuis le fork : la vérification ne concerne que les labs 101-115.
+  local needs_repo=$(($# == 0))
+  for lab in "$@"; do is_nodes "$lab" || needs_repo=1; done
+  if ((needs_repo == 0)); then
+    :
+  elif [[ -z "${CKS_REPO:-}" || "$CKS_REPO" == "$UPSTREAM_REPO" ]]; then
     echo "  - CKS_REPO doit pointer sur votre fork : les VMs y téléchargent les scripts et tests adaptés (K8s 1.35)"
     errors=$((errors + 1))
   else
@@ -135,14 +159,30 @@ cmd_one() {
   mkdir -p "$LOG_DIR/$lab"
   log="$LOG_DIR/$lab/$id.$action.log"
   # Sans terminal, la confirmation de 'terragrunt run-all' échouerait.
-  if (cd "$ROOT" && TERRAGRUNT_NON_INTERACTIVE=true TG_NON_INTERACTIVE=true \
-    USER_ID="$id" ENV_ID="$lab" TASK="$lab" make "${action}_cks_task") >"$log" 2>&1 </dev/null; then
+  export TERRAGRUNT_NON_INTERACTIVE=true TG_NON_INTERACTIVE=true
+  if is_nodes "$lab"; then
+    run_nodes "$action" "$lab" "$id" >"$log" 2>&1 </dev/null && status=OK || status=ECHEC
+  elif (cd "$ROOT" && USER_ID="$id" ENV_ID="$lab" TASK="$lab" make "${action}_cks_task") >"$log" 2>&1 </dev/null; then
     status=OK
   else
     status=ECHEC
   fi
   echo "$status" >"$LOG_DIR/$lab/$id.$action.status"
   echo "[$lab] $id : $action $status"
+}
+
+# Équivalent du Makefile pour les VMs LFS460 : copie de la stack sous terraform/environments
+# (où se trouve la configuration racine de terragrunt), puis apply ou destroy.
+run_nodes() {
+  local action=$1 lab=$2 id=$3 dir
+  dir=$(env_dir "$id" "$lab")
+  mkdir -p "$dir"
+  cp -r "$(stack_dir "$lab")"/* "$dir"
+  export TF_VAR_USER_ID="$id" TF_VAR_ENV_ID="$lab"
+  case "$action" in
+    run) (cd "$dir" && terragrunt run-all apply) ;;
+    delete) (cd "$dir" && terragrunt run-all destroy) && rm -rf "$dir" ;;
+  esac
 }
 
 run_all() {
@@ -179,6 +219,10 @@ cmd_access() {
   local lab=${1:-} id dir ssh ip password sheet csv
   [[ -n "$lab" ]] || usage
   check_lab "$lab"
+  if is_nodes "$lab"; then
+    access_nodes "$lab"
+    return
+  fi
   mkdir -p "$OUT_DIR/$lab"
   csv="$OUT_DIR/$lab/acces.csv"
   echo "participant;ip;mot_de_passe" >"$csv"
@@ -209,6 +253,38 @@ Si la machine vient de démarrer, attendez la fin de l'initialisation :
 EOF
   done < <(participants)
   echo "Accès du lab $lab : $OUT_DIR/$lab/ (fiches individuelles + acces.csv)"
+}
+
+access_nodes() {
+  local lab=$1 id dir ips password sheet csv node ip
+  mkdir -p "$OUT_DIR/$lab"
+  csv="$OUT_DIR/$lab/acces.csv"
+  echo "participant;noeud;ip;mot_de_passe" >"$csv"
+  while read -r id; do
+    dir="$(env_dir "$id" "$lab")/nodes"
+    ips=""
+    [[ -d "$dir" ]] && ips=$(cd "$dir" && terragrunt output -json public_ips 2>/dev/null | jq -r 'to_entries[] | "\(.key) \(.value)"' || true)
+    password=""
+    [[ -n "$ips" ]] && password=$(cd "$dir" && terragrunt output -raw student_password 2>/dev/null || true)
+    if [[ -z "$ips" || -z "$password" ]]; then
+      warn "$lab : pas d'accès trouvé pour $id (environnement non déployé ?)"
+      continue
+    fi
+    sheet="$OUT_DIR/$lab/$id.txt"
+    {
+      echo "Formation CKS (LFS460) - $id"
+      echo
+      while read -r node ip; do
+        echo "$id;$node;$ip;$password" >>"$csv"
+        printf 'Nœud %-7s: ssh student@%s\n' "$node" "$ip"
+      done <<<"$ips"
+      echo "Mot de passe : $password (le même pour tous vos nœuds, sudo sans mot de passe)"
+      echo
+      echo "Ces machines sont vierges : suivez les exercices du support de cours."
+      echo "Les identifiants de téléchargement des fichiers du cours vous sont donnés par le formateur."
+    } >"$sheet"
+  done < <(participants)
+  echo "Accès $lab : $OUT_DIR/$lab/ (fiches individuelles + acces.csv)"
 }
 
 action=${1:-}

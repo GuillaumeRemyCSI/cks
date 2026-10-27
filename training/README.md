@@ -48,6 +48,24 @@ training/classroom.sh access 107        # régénère les fiches d'accès
 training/classroom.sh down 107          # détruit les environnements du lab 107
 ```
 
+### VMs vierges des exercices officiels LFS460
+
+Les exercices du support de cours se font sur des VMs Ubuntu 24.04 vierges, où les participants
+installent eux-mêmes Kubernetes avec les scripts de la LF :
+
+```bash
+training/classroom.sh up lfs460-single     # chapitres 2-3 : un nœud 'single'
+training/classroom.sh down lfs460-single   # à la fin du chapitre 3 (« two fresh nodes »)
+training/classroom.sh up lfs460-cluster    # chapitre 4 et suivants : nœuds 'cp' et 'worker'
+```
+
+Chaque participant reçoit des t3.large (2 vCPU / 8 Go) avec l'utilisateur `student`
+(sudo sans mot de passe), un mot de passe SSH commun à ses nœuds et un trafic libre entre ses
+nœuds. Ces VMs n'ont aucun rôle IAM et ne téléchargent rien depuis le fork. Vous
+communiquez vous-même les identifiants de téléchargement des fichiers du cours (cm.lf.training).
+
+### Fonctionnement commun
+
 `up` vérifie le preflight, déploie `PARALLEL` participants à la fois (comptez 10-15 min par
 vague), puis écrit dans `training/out/107/` une fiche `<participant>.txt` par personne (IP, mot de
 passe, lien vers l'énoncé) ainsi que `acces.csv`. Ces fichiers contiennent des mots de passe et
