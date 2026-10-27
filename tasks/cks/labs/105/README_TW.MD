@@ -55,8 +55,8 @@ Core dump 是行程在 crash 當下的記憶體映像，它**可能**包含解�
 |---|---|
 | `vpc` | VPC `10.10.0.0/16`，含兩個公有子網路 |
 | `ssh-keys` | 用於內部連線的 SSH 金鑰 |
-| `k8s-1` | 單節點 kubeadm 叢集 Kubernetes `1.36.0`、containerd、Calico；這是目標 control-plane |
-| `docker-host` | 單獨的 Ubuntu 22.04，安裝了 Docker，並刻意設定為不安全 |
+| `k8s-1` | 單節點 kubeadm 叢集 Kubernetes `1.35.2`、containerd、Calico；這是目標 control-plane |
+| `docker-host` | 單獨的 Ubuntu 24.04，安裝了 Docker，並刻意設定為不安全 |
 | `worker` | 具備 `kubectl`、SSH 設定與 `check_result` 的工作機 |
 
 `worker` 可以透過 Kubernetes node name SSH 到 control-plane，也可以透過名稱 `docker-host` SSH 到單獨的

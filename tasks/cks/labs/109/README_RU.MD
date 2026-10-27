@@ -52,7 +52,7 @@ base64 - это просто кодирование, обратимое без �
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` с публичными подсетями |
 | `ssh-keys` | SSH-ключи для worker и control-plane |
-| `k8s-1` | одноузловой kubeadm control-plane: Kubernetes **1.36.0**, containerd, **Calico** |
+| `k8s-1` | одноузловой kubeadm control-plane: Kubernetes **1.35.2**, containerd, **Calico** |
 | `worker` | рабочая машина с `kubectl`; на control-plane (`ssh control-plane`) установлен стандартный `etcdctl` 3.6.0, как на экзамене |
 
 Control-plane намеренно принимает обычные Pod - отдельный Kubernetes worker не создаётся.

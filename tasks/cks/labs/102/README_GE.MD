@@ -80,7 +80,7 @@ flowchart LR
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
 | `vpc`            | ცალკე VPC `10.102.0.0/16` ორი საჯარო ქვექსელით                                 |
 | `ssh-keys`       | გასაღებები ვირტუალურ მანქანებზე წვდომისთვის                                                     |
-| `k8s-1`          | ერთკვანძიანი kubeadm-კლასტერი Kubernetes `1.36.0`, containerd და Cilium kube-proxy replacement-ით            |
+| `k8s-1`          | ერთკვანძიანი kubeadm-კლასტერი Kubernetes `1.35.2`, containerd და Cilium kube-proxy replacement-ით            |
 | `worker`         | სამუშაო მანქანა `kubectl`-ით, Cilium CLI-ით, Hubble CLI-ით და `check_result`-ით                                         |
 | Hubble Relay       | ირთვება საწყისი `worker.sh`-ით; CLI-სთვის საჭიროა ლოკალური `cilium hubble port-forward` |
 

@@ -6,7 +6,7 @@ Three versions are independent and must not be automatically aligned:
 
 | Track | Current value | Source of truth |
 |---|---:|---|
-| Training labs (core, `labs/101-114`) | Kubernetes `v1.36` (lab `113` is an exception: starts on `v1.35.x`, upgrades to `v1.36.x` - that upgrade is the task's own topic) | `env.hcl` of the core labs, verified tool compatibility |
+| Training labs (core, `labs/101-114`) | Kubernetes `v1.35` (`1.35.2`, Ubuntu 24.04; lab `113` starts on `v1.35.2` and upgrades to `v1.36.x` - that upgrade is the task's own topic) | `env.hcl` of the core labs, verified tool compatibility |
 | CKS exam environment | Kubernetes `v1.35` | LF CKS product page + LF "Important Instructions: CKS" (checked 2026-09-10) + LF FAQ (checked 2026-09-13); FAQ is an independent official observation when it publishes the environment version |
 | CKS curriculum | `CKS Curriculum v1.34` | root-level CKS curriculum PDF in `cncf/curriculum` |
 

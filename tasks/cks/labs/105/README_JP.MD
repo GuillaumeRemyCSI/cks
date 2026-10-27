@@ -55,8 +55,8 @@ Core dump は crash した時点のプロセスのメモリイメージで、平
 |---|---|
 | `vpc` | 2 つのパブリックサブネットを持つ VPC `10.10.0.0/16` |
 | `ssh-keys` | 内部接続用の SSH キー |
-| `k8s-1` | シングルノードの kubeadm クラスター Kubernetes `1.36.0`、containerd、Calico；これが対象の control-plane |
-| `docker-host` | Docker を備え、意図的に安全でない構成になっている別の Ubuntu 22.04 |
+| `k8s-1` | シングルノードの kubeadm クラスター Kubernetes `1.35.2`、containerd、Calico；これが対象の control-plane |
+| `docker-host` | Docker を備え、意図的に安全でない構成になっている別の Ubuntu 24.04 |
 | `worker` | `kubectl`、SSH 設定、`check_result` を備えた作業マシン |
 
 `worker` は、Kubernetes の node name で control-plane に、また名前 `docker-host` で別の

@@ -55,8 +55,8 @@ Core dump - это образ памяти процесса на момент cr
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` с двумя публичными подсетями |
 | `ssh-keys` | SSH-ключ для внутренних соединений |
-| `k8s-1` | одноузловой kubeadm-кластер Kubernetes `1.36.0`, containerd, Calico; это целевой control-plane |
-| `docker-host` | отдельный Ubuntu 22.04 с Docker и намеренно небезопасной конфигурацией |
+| `k8s-1` | одноузловой kubeadm-кластер Kubernetes `1.35.2`, containerd, Calico; это целевой control-plane |
+| `docker-host` | отдельный Ubuntu 24.04 с Docker и намеренно небезопасной конфигурацией |
 | `worker` | рабочая машина с `kubectl`, SSH-конфигурацией и `check_result` |
 
 `worker` имеет SSH-доступ к control-plane по его Kubernetes node name и к отдельному

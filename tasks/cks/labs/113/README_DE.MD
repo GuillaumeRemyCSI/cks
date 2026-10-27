@@ -37,7 +37,7 @@ Seit der Migration von `packages.cloud.google.com`/`apt.kubernetes.io` ist `pkgs
 
 ## Infrastruktur
 
-Terragrunt erstellt ein self-managed Kubernetes `1.35.4` in `eu-central-1`, containerd,
+Terragrunt erstellt ein self-managed Kubernetes `1.35.2` in `eu-central-1`, containerd,
 Calico CNI:
 
 | Komponente | Zweck |

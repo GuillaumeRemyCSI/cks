@@ -42,7 +42,7 @@ L'environnement est déployé par Terragrunt dans AWS `eu-central-1` :
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` avec des sous-réseaux publics |
 | `ssh-keys` | clés d'accès aux nœuds |
-| `k8s-1` | cluster kubeadm mono-nœud avec Kubernetes `1.36.0`, containerd et **Calico** |
+| `k8s-1` | cluster kubeadm mono-nœud avec Kubernetes `1.35.2`, containerd et **Calico** |
 | `worker` | machine de travail avec `kubectl`, Helm et `/usr/local/bin/install-kyverno` |
 
 Le control-plane autorise les Pods ordinaires, aucun worker Kubernetes distinct n'est donc créé.
@@ -414,10 +414,10 @@ TASK=108 make delete_cks_task
 
 ## Compatibilité et sémantique exacte de l'interdiction des images
 
-Le lab fige Kubernetes 1.36.0 et Kyverno 1.19 pour faire connaissance avec les nouvelles
-API `policies.kyverno.io/v1`. C'est une **forward-looking / unsupported combination** : Kyverno
-1.19 est officiellement testé avec Kubernetes 1.33–1.35, et non 1.36. Avant toute application hors du
-lab, choisissez une matrice de versions prise en charge et comparez les release notes.
+Le lab fige Kubernetes 1.35.2 et Kyverno 1.19 pour faire connaissance avec les nouvelles
+API `policies.kyverno.io/v1`. Cette combinaison fait partie de la plage officiellement testée : Kyverno
+1.19 est testé avec Kubernetes 1.33–1.35. Avant toute application hors du lab, revérifiez la
+matrice de versions et les release notes.
 
 Dans la tâche 2, par « interdiction de `latest` » on entend aussi l'interdiction du `latest` implicite : `nginx`
 sans tag ni digest est aussi inadmissible que `nginx:latest`. Seules sont autorisées les images avec un

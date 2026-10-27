@@ -42,7 +42,7 @@ L'environnement est déployé via Terragrunt dans AWS `eu-central-1` :
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` avec des sous-réseaux publics |
 | `ssh-keys` | clés SSH pour accéder aux machines |
-| `k8s-1` | cluster kubeadm mono-nœud avec Kubernetes `1.36.0`, containerd et **Calico** |
+| `k8s-1` | cluster kubeadm mono-nœud avec Kubernetes `1.35.2`, containerd et **Calico** |
 | `worker` | machine de travail avec `kubectl`, le contexte `cluster1-admin@cluster1` et `check_result` |
 
 Le control-plane accepte les Pods ordinaires, un nœud worker Kubernetes distinct n'est donc pas
@@ -67,13 +67,13 @@ check_result
 ---
 | **1** | **Enforce restricted avec version figée** |
 | :---: | :--- |
-| Ce qu'on fait | Sur le namespace `psa-restricted-107`, définissez `pod-security.kubernetes.io/enforce=restricted` et `pod-security.kubernetes.io/enforce-version=v1.36`. Assurez-vous que PSA rejette réellement un Pod non sûr : un server-side dry-run d'un Pod avec `hostNetwork: true` dans ce namespace doit se terminer par une erreur avec `violates PodSecurity`. Ne modifiez pas les labels des namespaces système. |
+| Ce qu'on fait | Sur le namespace `psa-restricted-107`, définissez `pod-security.kubernetes.io/enforce=restricted` et `pod-security.kubernetes.io/enforce-version=v1.35`. Assurez-vous que PSA rejette réellement un Pod non sûr : un server-side dry-run d'un Pod avec `hostNetwork: true` dans ce namespace doit se terminer par une erreur avec `violates PodSecurity`. Ne modifiez pas les labels des namespaces système. |
 | Critères d'acceptation | Les deux enforce-labels ont les valeurs exactes ; le Pod non sûr ne passe pas l'admission dans `psa-restricted-107` ; les namespaces système `kube-system`, `kube-public` et `kube-node-lease` ne reçoivent pas de labels `pod-security.kubernetes.io/*` dans le cadre de ce lab. |
 
 <details>
 <summary>💡 Indice pour la tâche 1</summary>
 
-`kubectl label namespace psa-restricted-107 pod-security.kubernetes.io/enforce=restricted pod-security.kubernetes.io/enforce-version=v1.36` - les deux labels s'appliquent instantanément, PSA n'exige aucun redémarrage. Vérifiez-vous via `kubectl apply --dry-run=server` avec `hostNetwork: true` - précisément `--dry-run=server` (et non `client`), car les admission controllers, y compris PSA, ne fonctionnent que côté serveur.
+`kubectl label namespace psa-restricted-107 pod-security.kubernetes.io/enforce=restricted pod-security.kubernetes.io/enforce-version=v1.35` - les deux labels s'appliquent instantanément, PSA n'exige aucun redémarrage. Vérifiez-vous via `kubectl apply --dry-run=server` avec `hostNetwork: true` - précisément `--dry-run=server` (et non `client`), car les admission controllers, y compris PSA, ne fonctionnent que côté serveur.
 </details>
 
 <details>
@@ -105,7 +105,7 @@ d'admission avec le texte `violates PodSecurity` :
 ```bash
 kubectl label namespace psa-restricted-107 \
   pod-security.kubernetes.io/enforce=restricted \
-  pod-security.kubernetes.io/enforce-version=v1.36
+  pod-security.kubernetes.io/enforce-version=v1.35
 
 kubectl apply --dry-run=server -f - <<'EOF'
 apiVersion: v1
@@ -133,14 +133,14 @@ echo "after-label exit: $?"
 <details>
 <summary>💡 Indice pour la tâche 2</summary>
 
-Si le Pod reçoit un admission rejection - lisez attentivement le message d'erreur, il nomme généralement le champ manquant EXACT (par exemple, « container has no capabilities.drop »). Un détail important sur la sémantique de PSS `restricted` dans Kubernetes 1.36 : il exige un `seccompProfile` effectif (pas nécessairement dupliqué littéralement) admissible - le profil au niveau du Pod (`spec.securityContext.seccompProfile.type`) peut être hérité par les conteneurs dont le champ propre n'est pas défini, et inversement, le champ au niveau du container suffit s'il est explicitement défini sur TOUS les conteneurs, même sans profil au niveau du Pod. C'est-à-dire que PSS lui-même n'exige pas littéralement LES DEUX niveaux à la fois. **Dans ce lab, nous demandons volontairement d'indiquer `RuntimeDefault` explicitement à la fois sur le Pod et sur le conteneur** - non pas parce que PSS l'exige, mais pour que vous vous exerciez avec les deux niveaux de configuration. De même, `runAsUser: 1000` est une décision d'explicit hardening propre à ce lab : PSS `restricted` interdit l'UID `0`, mais n'exige pas concrètement `1000` (toute valeur non nulle ou l'absence complète du champ est admissible pour PSS lui-même).
+Si le Pod reçoit un admission rejection - lisez attentivement le message d'erreur, il nomme généralement le champ manquant EXACT (par exemple, « container has no capabilities.drop »). Un détail important sur la sémantique de PSS `restricted` dans Kubernetes 1.35 : il exige un `seccompProfile` effectif (pas nécessairement dupliqué littéralement) admissible - le profil au niveau du Pod (`spec.securityContext.seccompProfile.type`) peut être hérité par les conteneurs dont le champ propre n'est pas défini, et inversement, le champ au niveau du container suffit s'il est explicitement défini sur TOUS les conteneurs, même sans profil au niveau du Pod. C'est-à-dire que PSS lui-même n'exige pas littéralement LES DEUX niveaux à la fois. **Dans ce lab, nous demandons volontairement d'indiquer `RuntimeDefault` explicitement à la fois sur le Pod et sur le conteneur** - non pas parce que PSS l'exige, mais pour que vous vous exerciez avec les deux niveaux de configuration. De même, `runAsUser: 1000` est une décision d'explicit hardening propre à ce lab : PSS `restricted` interdit l'UID `0`, mais n'exige pas concrètement `1000` (toute valeur non nulle ou l'absence complète du champ est admissible pour PSS lui-même).
 </details>
 
 ---
 | **3** | **Modes d'observation baseline** |
 | :---: | :--- |
-| Ce qu'on fait | Sur le namespace `psa-observe-107`, activez les deux modes de PSA : `pod-security.kubernetes.io/audit=baseline`, `pod-security.kubernetes.io/audit-version=v1.36`, `pod-security.kubernetes.io/warn=baseline`, `pod-security.kubernetes.io/warn-version=v1.36`. N'ajoutez pas `enforce` : c'est un namespace pour l'observation progressive avant le blocage. |
-| Critères d'acceptation | Les quatre labels audit/warn sont présents avec le niveau `baseline` et la version `v1.36` ; l'enforce-label est absent. |
+| Ce qu'on fait | Sur le namespace `psa-observe-107`, activez les deux modes de PSA : `pod-security.kubernetes.io/audit=baseline`, `pod-security.kubernetes.io/audit-version=v1.35`, `pod-security.kubernetes.io/warn=baseline`, `pod-security.kubernetes.io/warn-version=v1.35`. N'ajoutez pas `enforce` : c'est un namespace pour l'observation progressive avant le blocage. |
+| Critères d'acceptation | Les quatre labels audit/warn sont présents avec le niveau `baseline` et la version `v1.35` ; l'enforce-label est absent. |
 
 <details>
 <summary>💡 Indice pour la tâche 3</summary>
@@ -171,15 +171,15 @@ EOF
 ```
 
 Définissez les quatre labels, puis répétez LE MÊME manifest - maintenant `kubectl apply`
-doit afficher `Warning: ... would violate PodSecurity "baseline:v1.36"`, et la commande
+doit afficher `Warning: ... would violate PodSecurity "baseline:v1.35"`, et la commande
 doit tout de même se terminer avec succès (exit 0), et non par une erreur :
 
 ```bash
 kubectl label namespace psa-observe-107 \
   pod-security.kubernetes.io/audit=baseline \
-  pod-security.kubernetes.io/audit-version=v1.36 \
+  pod-security.kubernetes.io/audit-version=v1.35 \
   pod-security.kubernetes.io/warn=baseline \
-  pod-security.kubernetes.io/warn-version=v1.36
+  pod-security.kubernetes.io/warn-version=v1.35
 
 kubectl apply --dry-run=server -f - <<'EOF'
 apiVersion: v1
@@ -207,7 +207,7 @@ echo "exit code: $?"
 <details>
 <summary>💡 Indice pour la tâche 4</summary>
 
-Si le Pod n'a PAS été créé - vérifiez si vous n'avez pas défini par accident le label `enforce` dans la tâche 3 au lieu de seulement `audit`/`warn`. Le Warning de PSA apparaît directement dans la sortie de `kubectl apply` (`Warning: would violate PodSecurity "baseline:v1.36"`), inutile de le chercher dans un log distinct.
+Si le Pod n'a PAS été créé - vérifiez si vous n'avez pas défini par accident le label `enforce` dans la tâche 3 au lieu de seulement `audit`/`warn`. Le Warning de PSA apparaît directement dans la sortie de `kubectl apply` (`Warning: would violate PodSecurity "baseline:v1.35"`), inutile de le chercher dans un log distinct.
 </details>
 
 <details>
@@ -428,8 +428,8 @@ echo "exit code in psa-observe-107: $?"
 
 | **7** | **Controller-driven admission denial : diagnostic via les ReplicaSet events** |
 | :---: | :--- |
-| Ce qu'on fait | Dans le namespace vide `psa-controller-107`, créez un Deployment `controller-app` (label `app=controller-app`, replicas=1) avec un Pod template simple sans hardening (par exemple `busybox:1.36`, `sleep 3600`, sans `securityContext`) - il doit démarrer avec succès, PSA ne gêne pas encore. Activez ensuite `pod-security.kubernetes.io/enforce=restricted` et `enforce-version=v1.36` sur ce namespace (le Pod déjà existant continuera à fonctionner - PSA ne touche pas aux objets déjà créés). Supprimez le Pod actuel : le ReplicaSet essaiera de créer un remplaçant, et maintenant l'admission le rejettera. Vérifiez la cause via `kubectl -n psa-controller-107 describe rs` et `kubectl -n psa-controller-107 get events` - il y aura un `FailedCreate` avec le texte `violates PodSecurity "restricted:v1.36"`. Corrigez le Pod template du Deployment (ajoutez les mêmes champs de hardening que dans la tâche 2 : non-root, `seccompProfile: RuntimeDefault`, `capabilities.drop: [ALL]`, `allowPrivilegeEscalation: false`) et attendez que le ReplicaSet crée avec succès un nouveau Pod qui passe. |
-| Critères d'acceptation | Dans le namespace, l'enforce `restricted:v1.36` est actif ; le Pod template du Deployment est entièrement conforme au PSS `restricted` ; après la suppression du Pod actuel, le ReplicaSet crée réellement un nouveau Pod Ready sous l'enforce-mode actuel (pas simplement « l'objet existe » - on vérifie par une suppression en direct et une recréation). |
+| Ce qu'on fait | Dans le namespace vide `psa-controller-107`, créez un Deployment `controller-app` (label `app=controller-app`, replicas=1) avec un Pod template simple sans hardening (par exemple `busybox:1.36`, `sleep 3600`, sans `securityContext`) - il doit démarrer avec succès, PSA ne gêne pas encore. Activez ensuite `pod-security.kubernetes.io/enforce=restricted` et `enforce-version=v1.35` sur ce namespace (le Pod déjà existant continuera à fonctionner - PSA ne touche pas aux objets déjà créés). Supprimez le Pod actuel : le ReplicaSet essaiera de créer un remplaçant, et maintenant l'admission le rejettera. Vérifiez la cause via `kubectl -n psa-controller-107 describe rs` et `kubectl -n psa-controller-107 get events` - il y aura un `FailedCreate` avec le texte `violates PodSecurity "restricted:v1.35"`. Corrigez le Pod template du Deployment (ajoutez les mêmes champs de hardening que dans la tâche 2 : non-root, `seccompProfile: RuntimeDefault`, `capabilities.drop: [ALL]`, `allowPrivilegeEscalation: false`) et attendez que le ReplicaSet crée avec succès un nouveau Pod qui passe. |
+| Critères d'acceptation | Dans le namespace, l'enforce `restricted:v1.35` est actif ; le Pod template du Deployment est entièrement conforme au PSS `restricted` ; après la suppression du Pod actuel, le ReplicaSet crée réellement un nouveau Pod Ready sous l'enforce-mode actuel (pas simplement « l'objet existe » - on vérifie par une suppression en direct et une recréation). |
 
 <details>
 <summary>💡 Indice pour la tâche 7</summary>
@@ -471,11 +471,10 @@ TASK=107 make delete_cks_task
 
 ## Note sur la version de PSA et l'observabilité du mode audit
 
-Le lab fige volontairement les PSA labels sur `v1.36`, car le cluster de lab lui-même fonctionne
-sur Kubernetes 1.36.0. Au 2026-09-06, le blueprint officiel du CKS est orienté sur Kubernetes
-`v1.35` ; c'est donc une configuration pédagogique **forward-looking**, et non une affirmation sur la version de
-l'examen. Pour vous préparer à l'examen actuel, remplacez les suffixes `*-version` par `v1.35` et
-comparez le comportement avec la documentation de cette version.
+Le lab fige volontairement les PSA labels sur `v1.35`, car le cluster de lab lui-même fonctionne
+sur Kubernetes 1.35.2. Au 2026-09-06, le blueprint officiel du CKS est orienté sur Kubernetes
+`v1.35` également : la configuration du lab correspond donc à la version de l'examen. Revérifiez la
+version de l'examen peu avant votre passage et, si elle a changé, adaptez les suffixes `*-version`.
 
 Le mode `audit` ajoute à l'**audit event de kube-apiserver** l'annotation
 `pod-security.kubernetes.io/audit-violations` pour le Pod fautif. L'infrastructure de lab

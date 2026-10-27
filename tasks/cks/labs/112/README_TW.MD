@@ -41,7 +41,7 @@ Audit log 記錄的是對 API server 的 REQUEST 層級事件(誰、什麼時候
 
 | 元件 | 用途 |
 |---|---|
-| `k8s-1` | 單節點 Kubernetes `1.36.0`、containerd 與 Calico；節點名稱為 `control-plane` |
+| `k8s-1` | 單節點 Kubernetes `1.35.2`、containerd 與 Calico；節點名稱為 `control-plane` |
 | `worker` | 具備 `kubectl`、`check_result` 以及 SSH 存取 `ssh control-plane` 的工作機 |
 | `runtime-112` | 準備好的 namespace；其中已經有 Secret `audit-secret` |
 

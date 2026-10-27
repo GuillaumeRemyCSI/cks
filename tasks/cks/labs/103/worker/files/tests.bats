@@ -69,7 +69,7 @@ record_result() {
   [[ "$live_version" == "0.16.0" || "$live_version" == "v0.16.0" ]] && live_version_ok=true
 
   if [[ -s "$report" ]] \
-    && grep -Eq '^kubernetes_version=v1[.]36([.]|$)' "$report" \
+    && grep -Eq '^kubernetes_version=v1[.]35([.]|$)' "$report" \
     && grep -Eq '^kube_bench_version=v?0[.]16[.]0$' "$report" \
     && grep -qx 'benchmark=cis-1.12' "$report" \
     && grep -qx 'mapping_status=forced-approximate' "$report" \
@@ -80,14 +80,14 @@ record_result() {
   else
     if ! [[ -s "$report" ]]; then
       echo "HINT: kube-bench.txt is missing or empty - save the report at exactly $report."
-    elif ! grep -Eq '^kubernetes_version=v1[.]36([.]|$)' "$report"; then
-      echo "HINT: Report must include a line 'kubernetes_version=v1.36.x' - check kube-bench actually detected this cluster's version."
+    elif ! grep -Eq '^kubernetes_version=v1[.]35([.]|$)' "$report"; then
+      echo "HINT: Report must include a line 'kubernetes_version=v1.35.x' - check kube-bench actually detected this cluster's version."
     elif ! grep -Eq '^kube_bench_version=v?0[.]16[.]0$' "$report"; then
       echo "HINT: Report must include 'kube_bench_version=v0.16.0' (or without 'v') matching the tool version installed in this lab."
     elif ! grep -qx 'benchmark=cis-1.12' "$report"; then
       echo "HINT: Report must include a line 'benchmark=cis-1.12' exactly - this pinned kube-bench 0.16.0 has no profile newer than cis-1.12 (its version_mapping tops out at '1.34': 'cis-1.12'; there is no cis-2.0 in this release at all), so cis-1.12 is the closest existing profile to run explicitly."
     elif ! grep -qx 'mapping_status=forced-approximate' "$report"; then
-      echo "HINT: Report must include 'mapping_status=forced-approximate' exactly - this documents that v1.36 is newer than kube-bench's built-in version map."
+      echo "HINT: Report must include 'mapping_status=forced-approximate' exactly - this documents that v1.35 is newer than kube-bench's built-in version map."
     elif [[ "$sections_ok" != true ]]; then
       echo "HINT: Report must contain a '== Summary <target> ==' line for EVERY target (master, node, controlplane, etcd, policies), not just any single [PASS]/[WARN]/[FAIL] line - run with --targets master,node,controlplane,etcd,policies to get the full section set. A report missing the 'controlplane' or 'etcd' target can still contain strings like 'Control Plane Node Configuration' inside the 'master' target output, so checking for those substrings alone is not sufficient proof all five targets ran."
     elif [[ "$live_version_ok" != true ]]; then
@@ -377,9 +377,9 @@ record_result() {
     if [[ "$fixture_origin_ok" != "true" ]]; then
       echo "HINT: trusted checksum fixtures at $CHECKER_DIR are not root:root with the expected 0711/0444 permissions (dir=$checker_dir_owner/$checker_dir_mode, kubelet.sha256=$kubelet_ref_owner/$kubelet_ref_mode, kubectl.sha256=$kubectl_ref_owner/$kubectl_ref_mode) - this checker-owned fixture must not be student-writable."
     elif [[ "$kubelet_ok" != "true" ]]; then
-      echo "HINT: the actual installed kubelet on control-plane does not match the official v1.36.0 checksum (independently verified by the checker, not by trusting your artifact). expected=$trusted_kubelet actual=$actual_kubelet"
+      echo "HINT: the actual installed kubelet on control-plane does not match the official v1.35.2 checksum (independently verified by the checker, not by trusting your artifact). expected=$trusted_kubelet actual=$actual_kubelet"
     elif [[ "$kubectl_ok" != "true" ]]; then
-      echo "HINT: the actual installed kubectl on worker does not match the official v1.36.0 checksum (independently verified by the checker, not by trusting your artifact). expected=$trusted_kubectl actual=$actual_kubectl"
+      echo "HINT: the actual installed kubectl on worker does not match the official v1.35.2 checksum (independently verified by the checker, not by trusting your artifact). expected=$trusted_kubectl actual=$actual_kubectl"
     else
       echo "HINT: binaries.sha256.txt must contain lines matching 'kubelet...: OK' and 'kubectl...: OK' from your own sha256sum -c run - this is the standard 'sha256sum --check' output format."
     fi

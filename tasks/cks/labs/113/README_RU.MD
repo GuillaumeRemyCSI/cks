@@ -37,7 +37,7 @@
 
 ## Инфраструктура
 
-Terragrunt создаёт self-managed Kubernetes `1.35.4` в `eu-central-1`, containerd,
+Terragrunt создаёт self-managed Kubernetes `1.35.2` в `eu-central-1`, containerd,
 Calico CNI:
 
 | Компонент | Назначение |

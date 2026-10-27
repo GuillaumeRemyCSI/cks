@@ -40,7 +40,7 @@ policy，而不是在 Kyverno 中撰寫 CEL。請只操作任務中指定的物�
 |---|---|
 | `vpc` | VPC `10.10.0.0/16`，含公有子網路 |
 | `ssh-keys` | 用於存取節點的金鑰 |
-| `k8s-1` | 單節點 kubeadm 叢集 Kubernetes `1.36.0`、containerd 與 **Calico** |
+| `k8s-1` | 單節點 kubeadm 叢集 Kubernetes `1.35.2`、containerd 與 **Calico** |
 | `worker` | 具備 `kubectl`、Helm 與 `/usr/local/bin/install-kyverno` 的工作機 |
 
 Control-plane 允許一般的 Pod，因此不會建立單獨的 Kubernetes worker。
@@ -410,9 +410,9 @@ TASK=108 make delete_cks_task
 
 ## 相容性與禁止 image 的精確語意
 
-本實驗固定 Kubernetes 1.36.0 與 Kyverno 1.19，以熟悉新的
+本實驗固定 Kubernetes 1.35.2 與 Kyverno 1.19，以熟悉新的
 `policies.kyverno.io/v1` API。這是 **forward-looking / unsupported combination**:Kyverno
-1.19 官方是與 Kubernetes 1.33–1.35 一起測試的，而不是 1.36。在實驗之外套用之前，
+1.19 官方是與 Kubernetes 1.33–1.35 一起測試的，而不是 1.35。在實驗之外套用之前，
 請選擇受支援的版本矩陣，並核對 release notes。
 
 在任務 2 中，「禁止 `latest`」也包含禁止隱含的 `latest`：沒有 tag 與 digest 的 `nginx`

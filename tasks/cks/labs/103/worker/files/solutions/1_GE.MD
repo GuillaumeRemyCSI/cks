@@ -20,8 +20,8 @@ ssh control-plane hostname
 
 `kube-bench` `0.16.0` უკვე დაყენებულია `control-plane`-ზე (როგორც რეალურ გამოცდაზე, სადაც
 CIS Benchmark tooling node-ებზე უკვე არის) - worker-იდან იქ მისი კოპირება არ არის საჭირო. Kubernetes
-`1.36` kube-bench-ის ოფიციალურ support table-ში ჯერ არ არის; ამ ვერსიის ჩაშენებული version mapping
-მთავრდება ჩანაწერით `"1.34": "cis-1.12"` - უფრო ახალი პროფილები (1.35/1.36-ის
+`1.35` kube-bench-ის ოფიციალურ support table-ში ჯერ არ არის; ამ ვერსიის ჩაშენებული version mapping
+მთავრდება ჩანაწერით `"1.34": "cis-1.12"` - უფრო ახალი პროფილები (1.35-ის
 რომელიმე პროფილის ჩათვლით) `0.16.0`-ში საერთოდ არ არის, ამიტომ ვიყენებთ სწორედ `cis-1.12`-ს
 როგორც უახლოეს არსებულს. ჩვენ მას იძულებით ვუშვებთ როგორც approximate
 hardening signal-ს, და არა როგორც authoritative CIS compliance assessment-ს.
@@ -279,14 +279,14 @@ cat /var/work/tests/artifacts/5/tls13.txt
 
 ## დავალება 6. kubelet-ისა და kubectl-ის SHA-256-ის შემოწმება
 
-ეტალონი ლოკალური ფაილებიდან არ გამოითვლება. ჩამოტვირთეთ Kubernetes `v1.36.0`-ის ოფიციალურად გამოქვეყნებული
+ეტალონი ლოკალური ფაილებიდან არ გამოითვლება. ჩამოტვირთეთ Kubernetes `v1.35.2`-ის ოფიციალურად გამოქვეყნებული
 საკონტროლო ჯამები, ჩამოაყალიბეთ ფაილები `sha256sum -c`-ის ფორმატში და შეინახეთ შედეგები.
 
 ```bash
 mkdir -p /var/work/tests/artifacts/6 /tmp/cks-103-sha
 cd /tmp/cks-103-sha
-curl -fsSLO https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/kubectl.sha256
-curl -fsSLO https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/kubelet.sha256
+curl -fsSLO https://dl.k8s.io/release/v1.35.2/bin/linux/amd64/kubectl.sha256
+curl -fsSLO https://dl.k8s.io/release/v1.35.2/bin/linux/amd64/kubelet.sha256
 
 printf '%s  %s\n' "$(cat kubectl.sha256)" "$(command -v kubectl)" > kubectl.check
 scp kubelet.sha256 control-plane:/tmp/kubelet.sha256

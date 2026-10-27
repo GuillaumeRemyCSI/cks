@@ -139,14 +139,18 @@ chmod +x /usr/bin/check_result
 # install podman
 echo "*** install podman "
 . /etc/os-release
-echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_$VERSION_ID/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:testing.list
-curl -L "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_$VERSION_ID/Release.key" | sudo apt-key add -
-apt-get update -qq
-apt-get  -y install podman cri-tools containers-common
-rm /etc/apt/sources.list.d/devel:kubic:libcontainers:testing.list
+# The kubic repo has no build for Ubuntu 24.04+; podman ships in the Ubuntu archive there.
+if dpkg --compare-versions "$VERSION_ID" ge "24.04"; then
+  DEBIAN_FRONTEND=noninteractive apt-get -y install podman
+else
+  echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_$VERSION_ID/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:testing.list
+  curl -L "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_$VERSION_ID/Release.key" | sudo apt-key add -
+  apt-get update -qq
+  apt-get  -y install podman cri-tools containers-common
+  rm /etc/apt/sources.list.d/devel:kubic:libcontainers:testing.list
+fi
 cat <<EOF | sudo tee /etc/containers/registries.conf
-[registries.search]
-registries = ['docker.io']
+unqualified-search-registries = ['docker.io']
 EOF
 
 

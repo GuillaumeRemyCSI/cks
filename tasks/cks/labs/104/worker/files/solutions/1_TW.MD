@@ -167,7 +167,7 @@ k auth can-i get secrets -n security-104 \
 
 ## 5. 停用 anonymous-auth
 
-單純的 `--anonymous-auth=false` 在這裡不適用：kubeadm `release-1.36` 產生的
+單純的 `--anonymous-auth=false` 在這裡不適用：kubeadm `release-1.35` 產生的
 kube-apiserver static Pod，在 `/livez` 與
 `/readyz` 上使用 HTTPS liveness/readiness/startup probes，而 kubelet 的 HTTP probes 不會傳遞 client credentials - 完全停用
 anonymous access 時，這些請求會得到 `401`,kubelet 就會開始認為 kube-apiserver

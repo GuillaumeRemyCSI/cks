@@ -37,7 +37,7 @@ WireGuard 透過 Cilium 為每個節點產生的密碼學金鑰，驗證叢集�
 
 ## 基礎架構
 
-Terragrunt 在 `eu-central-1` 建立 Kubernetes `1.36.0`:
+Terragrunt 在 `eu-central-1` 建立 Kubernetes `1.35.2`:
 
 | 元件 | 用途 |
 |---|---|
@@ -47,8 +47,8 @@ Terragrunt 在 `eu-central-1` 建立 Kubernetes `1.36.0`:
 | `worker` | 具備 `kubectl`、`cilium`、`istioctl`、`check_result` 以及通往各節點的 SSH aliases 的工作機 |
 
 2026-08-31 驗證過的矩陣(每次建置之前請再核對)：lab 中的 Kubernetes
-`1.36.0`;Cilium data plane - 受支援的 lab 版本，它與
-Kubernetes `1.36` 的相容性需要依據最新的 requirements matrix 確認；Cilium CLI `0.19.7`
+`1.35.2`;Cilium data plane - 受支援的 lab 版本，它與
+Kubernetes `1.35` 的相容性需要依據最新的 requirements matrix 確認；Cilium CLI `0.19.7`
 (與 Cilium `1.17+` 相容);Istio `1.30.4`(分支 `1.30` 官方支援 Kubernetes
 `1.32–1.36`)。考試的版本在這裡並不決定 lab 工具的相容性；依據 LF 的資料，
 目前是 `v1.34`，並在考試之前另行確認。
@@ -131,7 +131,7 @@ mkdir -p /var/work/tests/artifacts/{1,2,3,4,5,6}
 ---
 | **4** | **啟用 Cilium transparent encryption** |
 | :---: | :--- |
-| 要做什麼 | • 首先把 Kubernetes、Cilium agent 與 Cilium CLI 的版本記錄到 `/var/work/tests/artifacts/4/tool-versions.txt`，並確認 data plane 支援 Kubernetes `1.36`。<br/>• 在由 `cilium install` 建立的既有 Helm release 中啟用 WireGuard:`cilium upgrade --version 1.20.1 --set encryption.enabled=true --set encryption.type=wireguard --wait`。<br/>• 重新啟動 agents(`kubectl -n kube-system rollout restart daemonset/cilium`):Helm 只更改 ConfigMap，而 DaemonSet 的 template 保持不變。<br/>• 檢查 `cilium-config`(`enable-wireguard: "true"`)以及兩個 Cilium agents 是否就緒。<br/>• 直接 patch ConfigMap 只允許作為短暫的學習用 baseline 探測，並且必須有經過確認的 rollback。不要尋找指令 `cilium encrypt enable`：用戶端 `cilium` CLI 沒有這個子指令。<br/>• 把 agent 端的 `cilium-dbg encrypt status` 與 `cilium-dbg debuginfo --output json` 儲存到 `/var/work/tests/artifacts/4/cilium-encrypt-status.txt`(`cilium-dbg status` 沒有旗標 `--all-encryption`)。 |
+| 要做什麼 | • 首先把 Kubernetes、Cilium agent 與 Cilium CLI 的版本記錄到 `/var/work/tests/artifacts/4/tool-versions.txt`，並確認 data plane 支援 Kubernetes `1.35`。<br/>• 在由 `cilium install` 建立的既有 Helm release 中啟用 WireGuard:`cilium upgrade --version 1.20.1 --set encryption.enabled=true --set encryption.type=wireguard --wait`。<br/>• 重新啟動 agents(`kubectl -n kube-system rollout restart daemonset/cilium`):Helm 只更改 ConfigMap，而 DaemonSet 的 template 保持不變。<br/>• 檢查 `cilium-config`(`enable-wireguard: "true"`)以及兩個 Cilium agents 是否就緒。<br/>• 直接 patch ConfigMap 只允許作為短暫的學習用 baseline 探測，並且必須有經過確認的 rollback。不要尋找指令 `cilium encrypt enable`：用戶端 `cilium` CLI 沒有這個子指令。<br/>• 把 agent 端的 `cilium-dbg encrypt status` 與 `cilium-dbg debuginfo --output json` 儲存到 `/var/work/tests/artifacts/4/cilium-encrypt-status.txt`(`cilium-dbg status` 沒有旗標 `--all-encryption`)。 |
 | 驗收標準 | • 版本 evidence 存在，並與 DaemonSet `kube-system/cilium` 的實際映像相符<br/>• Cilium agents(DaemonSet)完全 Ready<br/>• Status 顯示 WireGuard，並且沒有同時顯示 IPsec<br/>• Debuginfo JSON 包含節點間狀態的 peer/allowed-IP(或 remote-node)evidence<br/>• ConfigMap `kube-system/cilium-config` 包含 `enable-wireguard: "true"`，作為來自 Helm values 的已套用 effective 設定<br/>• 設定能撐過重新啟動一個 agent Pod(checker 會重新啟動 Pod 並再次檢查 status) |
 
 <details>

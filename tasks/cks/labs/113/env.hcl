@@ -1,6 +1,12 @@
 locals {
-  questions_list    = "https://github.com/ViktorUJ/cks/blob/master/tasks/cks/labs/113/README_RU.MD"
-  solutions_scripts = "https://github.com/ViktorUJ/cks/blob/master/tasks/cks/labs/113/worker/files/solutions/1_RU.MD"
+  # Repository the lab VMs download their bootstrap scripts and tests from.
+  # Override with CKS_REPO=<owner>/<repo> and CKS_REPO_REF=<branch> to use a fork.
+  repo     = get_env("CKS_REPO", "ViktorUJ/cks")
+  repo_ref = get_env("CKS_REPO_REF", "master")
+  raw_base = "https://raw.githubusercontent.com/${local.repo}/${local.repo_ref}"
+
+  questions_list    = "https://github.com/${local.repo}/blob/${local.repo_ref}/tasks/cks/labs/113/README_FR.MD"
+  solutions_scripts = "https://github.com/${local.repo}/blob/${local.repo_ref}/tasks/cks/labs/113/worker/files/solutions/1_FR.MD"
   solutions_video   = "Not ready yet"
   debug_output      = "false"
   region            = "eu-central-1"
@@ -18,7 +24,7 @@ locals {
   # чтобы задание "upgrade кластера" было реальным minor upgrade 1.35 -> 1.36, а не
   # no-op. После выполнения задания кластер окажется на той же baseline версии, что и
   # остальные core labs 101-112.
-  k8_version = "1.35.4"
+  k8_version = "1.35.2"
   node_type  = "ondemand"
   runtime    = "containerd"
   cni = {
@@ -31,8 +37,8 @@ locals {
   all_spot_subnet       = "true"
   key_name              = ""
   ssh_password_enable   = "true"
-  access_cidrs          = ["0.0.0.0/0"]
-  ubuntu_version        = "22.04"
+  access_cidrs          = split(",", get_env("CKS_ACCESS_CIDRS", "0.0.0.0/0"))
+  ubuntu_version        = "24.04"
   ami_id                = ""
   root_volume = {
     type = "gp3"

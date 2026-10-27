@@ -14,7 +14,7 @@ PSA 依據 namespace 的 labels 套用 Pod Security Standards。我們固定
 ```bash
 kubectl label namespace psa-restricted-107 \
   pod-security.kubernetes.io/enforce=restricted \
-  pod-security.kubernetes.io/enforce-version=v1.36
+  pod-security.kubernetes.io/enforce-version=v1.35
 ```
 
 檢查 admission，但不保存危險的物件。`hostNetwork` 被 `restricted` 等級禁止，
@@ -113,12 +113,12 @@ kubectl apply -f restricted-app.yaml
 ```bash
 kubectl label namespace psa-observe-107 \
   pod-security.kubernetes.io/audit=baseline \
-  pod-security.kubernetes.io/audit-version=v1.36 \
+  pod-security.kubernetes.io/audit-version=v1.35 \
   pod-security.kubernetes.io/warn=baseline \
-  pod-security.kubernetes.io/warn-version=v1.36
+  pod-security.kubernetes.io/warn-version=v1.35
 ```
 
-> **版本說明**。在這個學習用基礎架構中，`v1.36` 是為 Kubernetes 1.36.0 固定的。
+> **版本說明**。在這個學習用基礎架構中，`v1.35` 是為 Kubernetes 1.35.2 固定的。
 > 截至 2026-09-06，官方 CKS 以 `v1.35` 為準；這是
 > forward-looking 的範例，準備考試時請使用 `*-version=v1.35`。
 
@@ -317,7 +317,7 @@ kubectl -n psa-controller-107 rollout status deployment/controller-app
 ```bash
 kubectl label namespace psa-controller-107 \
   pod-security.kubernetes.io/enforce=restricted \
-  pod-security.kubernetes.io/enforce-version=v1.36
+  pod-security.kubernetes.io/enforce-version=v1.35
 kubectl -n psa-controller-107 get pod
 # controller-app-xxxx 仍然是 Running - PSA 不作用於已經存在的物件
 ```
@@ -327,7 +327,7 @@ kubectl -n psa-controller-107 get pod
 ```bash
 kubectl -n psa-controller-107 delete pod -l app=controller-app
 kubectl -n psa-controller-107 get events --sort-by=.lastTimestamp | tail -5
-# ... FailedCreate ... violates PodSecurity "restricted:v1.36": ...
+# ... FailedCreate ... violates PodSecurity "restricted:v1.35": ...
 kubectl -n psa-controller-107 get deploy controller-app
 # controller-app   0/1     1            0           ...   <- READY 0/1, AVAILABLE 0
 ```

@@ -36,7 +36,7 @@ control-plane での `kubeadm upgrade` は、コンポーネント (kube-apiserv
 
 ## インフラ
 
-Terragrunt が `eu-central-1` に、self-managed の Kubernetes `1.35.4`、containerd、
+Terragrunt が `eu-central-1` に、self-managed の Kubernetes `1.35.2`、containerd、
 Calico CNI を作成します：
 
 | コンポーネント | 用途 |

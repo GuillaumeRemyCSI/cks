@@ -37,7 +37,7 @@ A successful response INSIDE the mesh proves only that the mTLS connection betwe
 
 ## Infrastructure
 
-Terragrunt creates Kubernetes `1.36.0` in `eu-central-1`:
+Terragrunt creates Kubernetes `1.35.2` in `eu-central-1`:
 
 | Component | Purpose |
 |---|---|
@@ -47,8 +47,8 @@ Terragrunt creates Kubernetes `1.36.0` in `eu-central-1`:
 | `worker` | a work machine with `kubectl`, `cilium`, `istioctl`, `check_result`, and SSH aliases to the nodes |
 
 The matrix verified on 2026-08-31 (check it before each build): Kubernetes in the lab is
-`1.36.0`; the Cilium data plane is a supported lab build whose compatibility with
-Kubernetes `1.36` must be confirmed against the current requirements matrix; Cilium CLI `0.19.7`
+`1.35.2`; the Cilium data plane is a supported lab build whose compatibility with
+Kubernetes `1.35` must be confirmed against the current requirements matrix; Cilium CLI `0.19.7`
 (compatible with Cilium `1.17+`); Istio `1.30.4` (the `1.30` branch officially supports Kubernetes
 `1.32–1.36`). The exam version does not determine the compatibility of the lab tooling here; according to the LF
 it is currently `v1.34` and is checked separately before the exam.
@@ -131,7 +131,7 @@ This Pod is deliberately placed on a DIFFERENT node (the control-plane, not the 
 ---
 | **4** | **Enable Cilium transparent encryption** |
 | :---: | :--- |
-| What to do | • First record the versions of Kubernetes, the Cilium agent, and the Cilium CLI in `/var/work/tests/artifacts/4/tool-versions.txt` and make sure that the data plane supports Kubernetes `1.36`.<br/>• Enable WireGuard in the existing Helm release created by `cilium install`: `cilium upgrade --version 1.20.1 --set encryption.enabled=true --set encryption.type=wireguard --wait`.<br/>• Restart the agents (`kubectl -n kube-system rollout restart daemonset/cilium`): Helm changes only the ConfigMap, and the DaemonSet template stays the same.<br/>• Check `cilium-config` (`enable-wireguard: "true"`) and the readiness of both Cilium agents.<br/>• A direct ConfigMap patch is acceptable only as a short-term training baseline probe with a mandatory confirmed rollback. Do not look for a `cilium encrypt enable` command: the client `cilium` CLI has no such subcommand.<br/>• Save the agent-side `cilium-dbg encrypt status` and `cilium-dbg debuginfo --output json` in `/var/work/tests/artifacts/4/cilium-encrypt-status.txt` (`cilium-dbg status` has no flag `--all-encryption`). |
+| What to do | • First record the versions of Kubernetes, the Cilium agent, and the Cilium CLI in `/var/work/tests/artifacts/4/tool-versions.txt` and make sure that the data plane supports Kubernetes `1.35`.<br/>• Enable WireGuard in the existing Helm release created by `cilium install`: `cilium upgrade --version 1.20.1 --set encryption.enabled=true --set encryption.type=wireguard --wait`.<br/>• Restart the agents (`kubectl -n kube-system rollout restart daemonset/cilium`): Helm changes only the ConfigMap, and the DaemonSet template stays the same.<br/>• Check `cilium-config` (`enable-wireguard: "true"`) and the readiness of both Cilium agents.<br/>• A direct ConfigMap patch is acceptable only as a short-term training baseline probe with a mandatory confirmed rollback. Do not look for a `cilium encrypt enable` command: the client `cilium` CLI has no such subcommand.<br/>• Save the agent-side `cilium-dbg encrypt status` and `cilium-dbg debuginfo --output json` in `/var/work/tests/artifacts/4/cilium-encrypt-status.txt` (`cilium-dbg status` has no flag `--all-encryption`). |
 | Acceptance criteria | • The version evidence exists and matches the real image of the DaemonSet `kube-system/cilium`<br/>• The Cilium agents (DaemonSet) are fully Ready<br/>• The status shows WireGuard and does not show IPsec at the same time<br/>• The debuginfo JSON contains peer/allowed-IP (or remote-node) evidence for the inter-node state<br/>• The ConfigMap `kube-system/cilium-config` contains `enable-wireguard: "true"` as the applied effective configuration from the Helm values<br/>• The setting survives a restart of one agent Pod (the checker restarts the Pod and rechecks the status) |
 
 <details>

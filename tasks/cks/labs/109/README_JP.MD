@@ -51,7 +51,7 @@ etcd の既存のレコードは、明示的に書き直される (re-encryption
 |---|---|
 | `vpc` | パブリックサブネットを持つ VPC `10.10.0.0/16` |
 | `ssh-keys` | worker と control-plane 用の SSH キー |
-| `k8s-1` | シングルノードの kubeadm control-plane：Kubernetes **1.36.0**、containerd、**Calico** |
+| `k8s-1` | シングルノードの kubeadm control-plane：Kubernetes **1.35.2**、containerd、**Calico** |
 | `worker` | `kubectl` を備えた作業マシン；control-plane (`ssh control-plane`) には、試験と同じ標準の `etcdctl` 3.6.0 がインストールされている |
 
 Control-plane は意図的に通常の Pod を受け付けます - 別の Kubernetes worker は作成されません。

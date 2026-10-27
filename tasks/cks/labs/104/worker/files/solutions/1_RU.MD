@@ -167,7 +167,7 @@ k auth can-i get secrets -n security-104 \
 
 ## 5. Отключение anonymous-auth
 
-Простое `--anonymous-auth=false` здесь не подходит: kubeadm `release-1.36` генерирует
+Простое `--anonymous-auth=false` здесь не подходит: kubeadm `release-1.35` генерирует
 kube-apiserver static Pod с HTTPS liveness/readiness/startup probes на `/livez` и
 `/readyz`, а kubelet HTTP probes не передают client credentials - при полном отключении
 anonymous access эти запросы получат `401`, и kubelet начнёт считать kube-apiserver

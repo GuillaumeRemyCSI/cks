@@ -76,7 +76,7 @@ flowchart LR
 | --- | --- |
 | `vpc` | 獨立的 VPC `10.102.0.0/16`，含兩個公有子網路 |
 | `ssh-keys` | 用於存取虛擬機器的金鑰 |
-| `k8s-1` | 單節點 kubeadm 叢集 Kubernetes `1.36.0`,containerd 與帶有 kube-proxy replacement 的 Cilium |
+| `k8s-1` | 單節點 kubeadm 叢集 Kubernetes `1.35.2`,containerd 與帶有 kube-proxy replacement 的 Cilium |
 | `worker` | 工作機，具備 `kubectl`、Cilium CLI、Hubble CLI 與 `check_result` |
 | Hubble Relay | 由啟動時的 `worker.sh` 啟用；CLI 需要本機的 `cilium hubble port-forward` |
 

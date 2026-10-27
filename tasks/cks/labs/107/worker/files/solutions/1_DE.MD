@@ -14,7 +14,7 @@ des Standards fest, damit sich das Verhalten mit einem künftigen Kubernetes-Upd
 ```bash
 kubectl label namespace psa-restricted-107 \
   pod-security.kubernetes.io/enforce=restricted \
-  pod-security.kubernetes.io/enforce-version=v1.36
+  pod-security.kubernetes.io/enforce-version=v1.35
 ```
 
 Wir prüfen die admission, ohne das gefährliche Objekt zu speichern. `hostNetwork` ist durch die Stufe
@@ -113,12 +113,12 @@ fügt dem audit event des API server die annotation
 ```bash
 kubectl label namespace psa-observe-107 \
   pod-security.kubernetes.io/audit=baseline \
-  pod-security.kubernetes.io/audit-version=v1.36 \
+  pod-security.kubernetes.io/audit-version=v1.35 \
   pod-security.kubernetes.io/warn=baseline \
-  pod-security.kubernetes.io/warn-version=v1.36
+  pod-security.kubernetes.io/warn-version=v1.35
 ```
 
-> **Versionsvorbehalt.** `v1.36` ist für Kubernetes 1.36.0 in dieser Lerninfrastruktur festgelegt.
+> **Versionsvorbehalt.** `v1.35` ist für Kubernetes 1.35.2 in dieser Lerninfrastruktur festgelegt.
 > Stand 2026-09-06 orientiert sich die offizielle CKS-Prüfung an `v1.35`; das ist ein
 > forward-looking Beispiel, und bei der Vorbereitung auf die Prüfung verwende `*-version=v1.35`.
 
@@ -317,7 +317,7 @@ Wir aktivieren enforce - der vorhandene Pod wird nicht angetastet:
 ```bash
 kubectl label namespace psa-controller-107 \
   pod-security.kubernetes.io/enforce=restricted \
-  pod-security.kubernetes.io/enforce-version=v1.36
+  pod-security.kubernetes.io/enforce-version=v1.35
 kubectl -n psa-controller-107 get pod
 # controller-app-xxxx ist weiterhin Running - PSA wirkt nicht auf bereits vorhandene Objekte
 ```
@@ -327,7 +327,7 @@ Wir löschen den Pod - das ReplicaSet versucht, einen Ersatz zu erstellen, und e
 ```bash
 kubectl -n psa-controller-107 delete pod -l app=controller-app
 kubectl -n psa-controller-107 get events --sort-by=.lastTimestamp | tail -5
-# ... FailedCreate ... violates PodSecurity "restricted:v1.36": ...
+# ... FailedCreate ... violates PodSecurity "restricted:v1.35": ...
 kubectl -n psa-controller-107 get deploy controller-app
 # controller-app   0/1     1            0           ...   <- READY 0/1, AVAILABLE 0
 ```

@@ -57,7 +57,7 @@ Die Umgebung wird über Terragrunt in AWS `eu-central-1` ausgerollt.
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` mit öffentlichen Subnetzen |
 | `ssh-keys` | Schlüssel für den Zugriff auf den Node |
-| `k8s-1` | Ein-Node-kubeadm-Cluster Kubernetes `1.36.0`, containerd und **Calico** |
+| `k8s-1` | Ein-Node-kubeadm-Cluster Kubernetes `1.35.2`, containerd und **Calico** |
 | `worker` | Arbeitsmaschine mit `kubectl`, `check_result` und SSH-Zugriff auf den Node als `control-plane` |
 
 Zur Ressourcenschonung ist die control-plane der einzige workload-Node: Von ihr wurde der
@@ -209,7 +209,7 @@ Verwende für einen gewöhnlichen workload `capabilities.drop: ["ALL"]` und sepa
 ---
 | **7** | **User namespaces: `hostUsers: false` und UID-Übersetzung über `uid_map`** |
 | :---: | :--- |
-| Was wir tun | User namespaces sind in Kubernetes v1.36 GA (siehe [Kapitel 03](../../course/03/de.md), [Kapitel 18](../../course/18/de.md) und Security Delta v1.36). Die Theorie erklärt, dass `hostUsers: false` den Root-Benutzer des Containers in eine unprivilegierte host UID übersetzt; hier musst du das an einem laufenden Prozess belegen. Erstelle in `security-106` auf dem vorbereiteten Node einen Pod `userns-probe` mit `spec.hostUsers: false`, dem Image `busybox:1.36`, dem Befehl `sleep 3600`; setze kein Pod-level `runAsUser`, damit der Prozess als UID 0 **innerhalb** des Containers startet. Bestätige `id` im Container (`uid=0`). Bestimme die host PID des Container-Prozesses über `crictl inspect` (analog zu Lab 112) oder über `kubectl get pod -o jsonpath` + `crictl ps`, lies dann auf dem Node `/proc/<host PID>/uid_map`. Speichere beide Ausgaben (`id` im Container und den Inhalt von `uid_map`) in `/var/work/tests/artifacts/6/userns.txt`. |
+| Was wir tun | User namespaces sind in Kubernetes v1.35 GA (siehe [Kapitel 03](../../course/03/de.md), [Kapitel 18](../../course/18/de.md) und Security Delta v1.35). Die Theorie erklärt, dass `hostUsers: false` den Root-Benutzer des Containers in eine unprivilegierte host UID übersetzt; hier musst du das an einem laufenden Prozess belegen. Erstelle in `security-106` auf dem vorbereiteten Node einen Pod `userns-probe` mit `spec.hostUsers: false`, dem Image `busybox:1.36`, dem Befehl `sleep 3600`; setze kein Pod-level `runAsUser`, damit der Prozess als UID 0 **innerhalb** des Containers startet. Bestätige `id` im Container (`uid=0`). Bestimme die host PID des Container-Prozesses über `crictl inspect` (analog zu Lab 112) oder über `kubectl get pod -o jsonpath` + `crictl ps`, lies dann auf dem Node `/proc/<host PID>/uid_map`. Speichere beide Ausgaben (`id` im Container und den Inhalt von `uid_map`) in `/var/work/tests/artifacts/6/userns.txt`. |
 | Abnahmekriterien | Der Pod ist `Running`, `spec.hostUsers == false`, wählt den vorbereiteten Node aus; `id` im Container zeigt `uid=0(root)`; `/proc/<host PID>/uid_map` auf dem Node enthält eine Zeile der Form `0 <host-uid> <length>`, wobei `<host-uid>` **nicht gleich 0** ist (der Root-Benutzer des Containers wurde in eine unprivilegierte host UID übersetzt) und `<length>` mindestens `65536` beträgt (der standardmäßige per-Pod UID-Bereich); das artifact enthält beide Teile der evidence. |
 
 <details>

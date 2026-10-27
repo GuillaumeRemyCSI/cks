@@ -55,8 +55,8 @@ Die Umgebung wird über Terragrunt in AWS `eu-central-1` ausgerollt:
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` mit zwei öffentlichen Subnetzen |
 | `ssh-keys` | SSH-Schlüssel für interne Verbindungen |
-| `k8s-1` | Ein-Node-kubeadm-Cluster Kubernetes `1.36.0`, containerd, Calico; das ist die Ziel-control-plane |
-| `docker-host` | separates Ubuntu 22.04 mit Docker und absichtlich unsicherer Konfiguration |
+| `k8s-1` | Ein-Node-kubeadm-Cluster Kubernetes `1.35.2`, containerd, Calico; das ist die Ziel-control-plane |
+| `docker-host` | separates Ubuntu 24.04 mit Docker und absichtlich unsicherer Konfiguration |
 | `worker` | Arbeitsmaschine mit `kubectl`, SSH-Konfiguration und `check_result` |
 
 `worker` hat SSH-Zugriff auf die control-plane über ihren Kubernetes node name und auf den separaten

@@ -40,7 +40,7 @@ image がタグなしで指定された場合 (たとえば `nginx`)、Docker/OC
 |---|---|
 | `vpc` | パブリックサブネットを持つ VPC `10.10.0.0/16` |
 | `ssh-keys` | ノードへアクセスするためのキー |
-| `k8s-1` | シングルノードの kubeadm クラスター Kubernetes `1.36.0`、containerd、**Calico** |
+| `k8s-1` | シングルノードの kubeadm クラスター Kubernetes `1.35.2`、containerd、**Calico** |
 | `worker` | `kubectl`、Helm、`/usr/local/bin/install-kyverno` を備えた作業マシン |
 
 Control-plane は通常の Pod を許可しているため、別の Kubernetes worker は作成されません。
@@ -411,9 +411,9 @@ TASK=108 make delete_cks_task
 
 ## 互換性と image 禁止の正確なセマンティクス
 
-この実習は、新しい `policies.kyverno.io/v1` API を知るために Kubernetes 1.36.0 と Kyverno 1.19 を固定しています。
+この実習は、新しい `policies.kyverno.io/v1` API を知るために Kubernetes 1.35.2 と Kyverno 1.19 を固定しています。
 これは **forward-looking / unsupported combination** です：Kyverno
-1.19 は、公式には Kubernetes 1.33-1.35 でテストされており、1.36 ではありません。実習の外で適用する前に、
+1.19 は、公式には Kubernetes 1.33-1.35 でテストされており、1.35 ではありません。実習の外で適用する前に、
 サポートされているバージョンのマトリックスを選び、release notes と照合してください。
 
 課題 2 における「`latest` の禁止」には、暗黙的な `latest` の禁止も含まれます：タグも digest もない `nginx` は、

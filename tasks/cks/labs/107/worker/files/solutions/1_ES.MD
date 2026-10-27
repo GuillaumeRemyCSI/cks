@@ -14,7 +14,7 @@ del estándar, para que el comportamiento no cambie con una futura actualizació
 ```bash
 kubectl label namespace psa-restricted-107 \
   pod-security.kubernetes.io/enforce=restricted \
-  pod-security.kubernetes.io/enforce-version=v1.36
+  pod-security.kubernetes.io/enforce-version=v1.35
 ```
 
 Comprobaremos el admission sin guardar el objeto peligroso. `hostNetwork` está prohibido por el nivel
@@ -113,12 +113,12 @@ añade al audit event del API server la annotation
 ```bash
 kubectl label namespace psa-observe-107 \
   pod-security.kubernetes.io/audit=baseline \
-  pod-security.kubernetes.io/audit-version=v1.36 \
+  pod-security.kubernetes.io/audit-version=v1.35 \
   pod-security.kubernetes.io/warn=baseline \
-  pod-security.kubernetes.io/warn-version=v1.36
+  pod-security.kubernetes.io/warn-version=v1.35
 ```
 
-> **Salvedad de versión.** `v1.36` está fijada para Kubernetes 1.36.0 en esta infraestructura
+> **Salvedad de versión.** `v1.35` está fijada para Kubernetes 1.35.2 en esta infraestructura
 > didáctica. A fecha de 2026-09-06 el CKS oficial está orientado a `v1.35`; este es un
 > ejemplo forward-looking, y al prepararte para el examen usa `*-version=v1.35`.
 
@@ -317,7 +317,7 @@ Habilitamos enforce (el Pod existente no se toca):
 ```bash
 kubectl label namespace psa-controller-107 \
   pod-security.kubernetes.io/enforce=restricted \
-  pod-security.kubernetes.io/enforce-version=v1.36
+  pod-security.kubernetes.io/enforce-version=v1.35
 kubectl -n psa-controller-107 get pod
 # controller-app-xxxx sigue Running - PSA no actúa sobre los objetos ya existentes
 ```
@@ -327,7 +327,7 @@ Eliminamos el Pod: el ReplicaSet intenta crear un reemplazo y recibe un rechazo:
 ```bash
 kubectl -n psa-controller-107 delete pod -l app=controller-app
 kubectl -n psa-controller-107 get events --sort-by=.lastTimestamp | tail -5
-# ... FailedCreate ... violates PodSecurity "restricted:v1.36": ...
+# ... FailedCreate ... violates PodSecurity "restricted:v1.35": ...
 kubectl -n psa-controller-107 get deploy controller-app
 # controller-app   0/1     1            0           ...   <- READY 0/1, AVAILABLE 0
 ```

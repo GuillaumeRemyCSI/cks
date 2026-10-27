@@ -37,7 +37,7 @@ Depuis la migration à partir de `packages.cloud.google.com`/`apt.kubernetes.io`
 
 ## Infrastructure
 
-Terragrunt crée un Kubernetes self-managed `1.35.4` dans `eu-central-1`, avec containerd et
+Terragrunt crée un Kubernetes self-managed `1.35.2` dans `eu-central-1`, avec containerd et
 Calico CNI :
 
 | Composant | Rôle |

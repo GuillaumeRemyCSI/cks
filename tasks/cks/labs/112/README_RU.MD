@@ -41,7 +41,7 @@ Audit log записывает REQUEST-уровневые события к API 
 
 | Компонент | Назначение |
 |---|---|
-| `k8s-1` | одноузловой Kubernetes `1.36.0`, containerd и Calico; имя ноды `control-plane` |
+| `k8s-1` | одноузловой Kubernetes `1.35.2`, containerd и Calico; имя ноды `control-plane` |
 | `worker` | рабочая машина с `kubectl`, `check_result` и SSH-доступом `ssh control-plane` |
 | `runtime-112` | подготовленный namespace; в нём уже есть Secret `audit-secret` |
 

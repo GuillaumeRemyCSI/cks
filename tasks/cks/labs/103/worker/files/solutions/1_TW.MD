@@ -20,9 +20,9 @@ ssh control-plane hostname
 
 `kube-bench` `0.16.0` 已經安裝在 `control-plane` 上(就像真正的考試中，
 節點上已經有 CIS Benchmark 工具一樣)- 不需要從 worker 複製過去。Kubernetes
-`1.36` 目前還不在 kube-bench 官方的 support table 中；這個版本內建的 version mapping
+`1.35` 目前還不在 kube-bench 官方的 support table 中；這個版本內建的 version mapping
 以 `"1.34": "cis-1.12"` 這筆記錄結束 - `0.16.0` 中完全沒有更新的 profile(包括
-任何 1.35/1.36 的 profile)，因此我們使用 `cis-1.12`,
+任何 1.35 的 profile)，因此我們使用 `cis-1.12`,
 作為最接近的現有 profile。我們強制把它當作 approximate
 hardening signal 來執行，而不是 authoritative CIS compliance assessment。
 
@@ -279,14 +279,14 @@ cat /var/work/tests/artifacts/5/tls13.txt
 
 ## 任務 6。驗證 kubelet 與 kubectl 的 SHA-256
 
-基準不是從本機檔案計算出來的。請下載 Kubernetes `v1.36.0` 官方公布的 checksum,
+基準不是從本機檔案計算出來的。請下載 Kubernetes `v1.35.2` 官方公布的 checksum,
 產生 `sha256sum -c` 格式的檔案，並儲存結果。
 
 ```bash
 mkdir -p /var/work/tests/artifacts/6 /tmp/cks-103-sha
 cd /tmp/cks-103-sha
-curl -fsSLO https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/kubectl.sha256
-curl -fsSLO https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/kubelet.sha256
+curl -fsSLO https://dl.k8s.io/release/v1.35.2/bin/linux/amd64/kubectl.sha256
+curl -fsSLO https://dl.k8s.io/release/v1.35.2/bin/linux/amd64/kubelet.sha256
 
 printf '%s  %s\n' "$(cat kubectl.sha256)" "$(command -v kubectl)" > kubectl.check
 scp kubelet.sha256 control-plane:/tmp/kubelet.sha256

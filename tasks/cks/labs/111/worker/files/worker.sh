@@ -145,14 +145,9 @@ set -euo pipefail
 # Kyverno 1.19 / chart 3.9.0: current supported branch verified 2026-08-31,
 # первый релиз с полным CEL-policy feature parity (ImageValidatingPolicy).
 #
-# LAB-SPECIFIC ARCHITECTURE EXCEPTION: официальная support matrix Kyverno 1.19
-# охватывает Kubernetes 1.33-1.35 (см. https://kyverno.io/docs/releases/); этот кластер
-# закреплён на Kubernetes 1.36, что вне протестированного диапазона upstream ("Other
-# Kubernetes versions may work, but are not tested and therefore no guarantees are made
-# as to their full compatibility"). Комбинация 1.36 используется в этой лабе как
-# осознанный trade-off после smoke-проверки install/admission на конкретной паре версий.
-# Обновить закреплённую версию Kyverno/chart и снять это исключение, когда выйдет релиз с
-# официальной поддержкой Kubernetes 1.36.
+# Официальная support matrix Kyverno 1.19 охватывает Kubernetes 1.33-1.35
+# (см. https://kyverno.io/docs/releases/); этот кластер закреплён на Kubernetes 1.35,
+# то есть внутри протестированного диапазона upstream.
 helm repo add kyverno https://kyverno.github.io/kyverno/
 helm repo update
 helm upgrade --install kyverno kyverno/kyverno \

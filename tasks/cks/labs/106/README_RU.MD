@@ -57,7 +57,7 @@ Kubelet сам разрешает относительный путь относ
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` с публичными подсетями |
 | `ssh-keys` | ключи для доступа к ноде |
-| `k8s-1` | одноузловой kubeadm-кластер Kubernetes `1.36.0`, containerd и **Calico** |
+| `k8s-1` | одноузловой kubeadm-кластер Kubernetes `1.35.2`, containerd и **Calico** |
 | `worker` | рабочая машина с `kubectl`, `check_result` и SSH-доступом к ноде как `control-plane` |
 
 Для экономии ресурсов control-plane является единственной workload-нодой: с неё снят
@@ -209,7 +209,7 @@ file capabilities), но не удаляет `SYS_ADMIN`, уже добавле�
 ---
 | **7** | **User namespaces: `hostUsers: false` и трансляция UID через `uid_map`** |
 | :---: | :--- |
-| Что делаем | User namespaces GA в Kubernetes v1.36 (см. [главу 03](../../course/03/ru.md), [главу 18](../../course/18/ru.md) и Security Delta v1.36). Теория объясняет, что `hostUsers: false` транслирует root контейнера в непривилегированный host UID; здесь нужно это доказать на живом процессе. Создайте в `security-106` Pod `userns-probe` на подготовленной ноде с `spec.hostUsers: false`, образом `busybox:1.36`, командой `sleep 3600`; не задавайте Pod-level `runAsUser`, чтобы процесс стартовал как UID 0 **внутри** контейнера. Подтвердите `id` внутри контейнера (`uid=0`). Определите host PID процесса контейнера через `crictl inspect` (по аналогии с лабой 112) или через `kubectl get pod -o jsonpath` + `crictl ps`, затем на ноде прочитайте `/proc/<host PID>/uid_map`. Сохраните оба вывода (`id` внутри контейнера и содержимое `uid_map`) в `/var/work/tests/artifacts/6/userns.txt`. |
+| Что делаем | User namespaces GA в Kubernetes v1.35 (см. [главу 03](../../course/03/ru.md), [главу 18](../../course/18/ru.md) и Security Delta v1.35). Теория объясняет, что `hostUsers: false` транслирует root контейнера в непривилегированный host UID; здесь нужно это доказать на живом процессе. Создайте в `security-106` Pod `userns-probe` на подготовленной ноде с `spec.hostUsers: false`, образом `busybox:1.36`, командой `sleep 3600`; не задавайте Pod-level `runAsUser`, чтобы процесс стартовал как UID 0 **внутри** контейнера. Подтвердите `id` внутри контейнера (`uid=0`). Определите host PID процесса контейнера через `crictl inspect` (по аналогии с лабой 112) или через `kubectl get pod -o jsonpath` + `crictl ps`, затем на ноде прочитайте `/proc/<host PID>/uid_map`. Сохраните оба вывода (`id` внутри контейнера и содержимое `uid_map`) в `/var/work/tests/artifacts/6/userns.txt`. |
 | Критерии приёмки | Pod `Running`, `spec.hostUsers == false`, выбирает подготовленную ноду; `id` внутри контейнера показывает `uid=0(root)`; `/proc/<host PID>/uid_map` на ноде содержит строку вида `0 <host-uid> <length>`, где `<host-uid>` **не равен 0** (root контейнера транслирован в непривилегированный host UID) и `<length>` равен как минимум `65536` (стандартный per-Pod диапазон UID); артефакт содержит обе части evidence. |
 
 <details>

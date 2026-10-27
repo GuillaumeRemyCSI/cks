@@ -14,7 +14,7 @@ PSA ამოქმედებს Pod Security Standards-ს namespace-ის l
 ```bash
 kubectl label namespace psa-restricted-107 \
   pod-security.kubernetes.io/enforce=restricted \
-  pod-security.kubernetes.io/enforce-version=v1.36
+  pod-security.kubernetes.io/enforce-version=v1.35
 ```
 
 ვამოწმებთ admission-ს სახიფათო ობიექტის შენახვის გარეშე. `hostNetwork` აკრძალულია დონით
@@ -113,12 +113,12 @@ API server-ის audit event-ში ამატებს annotation-ს
 ```bash
 kubectl label namespace psa-observe-107 \
   pod-security.kubernetes.io/audit=baseline \
-  pod-security.kubernetes.io/audit-version=v1.36 \
+  pod-security.kubernetes.io/audit-version=v1.35 \
   pod-security.kubernetes.io/warn=baseline \
-  pod-security.kubernetes.io/warn-version=v1.36
+  pod-security.kubernetes.io/warn-version=v1.35
 ```
 
-> **ვერსიის შენიშვნა.** `v1.36` დაფიქსირებულია Kubernetes 1.36.0-ისთვის ამ სასწავლო
+> **ვერსიის შენიშვნა.** `v1.35` დაფიქსირებულია Kubernetes 1.35.2-ისთვის ამ სასწავლო
 > ინფრასტრუქტურაში. 2026-09-06-ის მდგომარეობით ოფიციალური CKS ორიენტირებულია `v1.35`-ზე; ეს
 > forward-looking მაგალითია, ხოლო გამოცდისთვის მომზადებისას გამოიყენეთ `*-version=v1.35`.
 
@@ -317,7 +317,7 @@ kubectl -n psa-controller-107 rollout status deployment/controller-app
 ```bash
 kubectl label namespace psa-controller-107 \
   pod-security.kubernetes.io/enforce=restricted \
-  pod-security.kubernetes.io/enforce-version=v1.36
+  pod-security.kubernetes.io/enforce-version=v1.35
 kubectl -n psa-controller-107 get pod
 # controller-app-xxxx ჯერ კიდევ Running-ია - PSA უკვე არსებულ ობიექტებზე არ მოქმედებს
 ```
@@ -327,7 +327,7 @@ kubectl -n psa-controller-107 get pod
 ```bash
 kubectl -n psa-controller-107 delete pod -l app=controller-app
 kubectl -n psa-controller-107 get events --sort-by=.lastTimestamp | tail -5
-# ... FailedCreate ... violates PodSecurity "restricted:v1.36": ...
+# ... FailedCreate ... violates PodSecurity "restricted:v1.35": ...
 kubectl -n psa-controller-107 get deploy controller-app
 # controller-app   0/1     1            0           ...   <- READY 0/1, AVAILABLE 0
 ```

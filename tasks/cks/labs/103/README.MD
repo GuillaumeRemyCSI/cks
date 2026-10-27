@@ -26,9 +26,9 @@ Reinforce the material of the course chapters:
 ## Self-check before you start
 
 <details>
-<summary>1. Why can't a kube-bench run with the `cis-1.12` profile on Kubernetes 1.36 be called authoritative CIS compliance?</summary>
+<summary>1. Why can't a kube-bench run with the `cis-1.12` profile on Kubernetes 1.35 be called authoritative CIS compliance?</summary>
 
-The `kube-bench 0.16.0` version pinned in this lab contains no profile for 1.36 at all - its built-in version mapping goes only up to `"1.34": "cis-1.12"` (the newest available profile). By explicitly specifying `--benchmark cis-1.12` on a 1.36 cluster, we forcibly use the closest existing profile as an approximation: some checks may be irrelevant for the newer version, and new security-relevant parameters specifically for 1.36 are not yet covered by this profile. This is a valuable practical signal, but not a formal compliance statement for version 1.36.
+The `kube-bench 0.16.0` version pinned in this lab contains no profile for 1.35 at all - its built-in version mapping goes only up to `"1.34": "cis-1.12"` (the newest available profile). By explicitly specifying `--benchmark cis-1.12` on a 1.35 cluster, we forcibly use the closest existing profile as an approximation: some checks may be irrelevant for the newer version, and new security-relevant parameters specifically for 1.35 are not yet covered by this profile. This is a valuable practical signal, but not a formal compliance statement for version 1.35.
 </details>
 
 <details>
@@ -78,10 +78,10 @@ The environment is deployed in AWS (`eu-central-1`) via Terragrunt.
 |---|---|
 | `vpc` | VPC `10.103.0.0/16` with public subnets |
 | `ssh-keys` | SSH keys for access to the nodes |
-| `k8s-1` | Kubernetes `1.36.0` (kubeadm), containerd, and Calico: control-plane + one worker node |
+| `k8s-1` | Kubernetes `1.35.2` (kubeadm), containerd, and Calico: control-plane + one worker node |
 | `worker` | A work machine (bastion) with `kubectl`, SSH access, and `check_result` (`kube-bench` itself is not needed here - it is already on `control-plane` and is installed on the worker node during the lab) |
 
-> **Version and exam.** As of 2026-09-06 the official CKS exam is based on Kubernetes `v1.35`. This lab uses `1.36.0`, so everything related to that version is a forward-looking training scenario and not a statement about the current exam version.
+> **Version and exam.** As of 2026-09-06 the official CKS exam is based on Kubernetes `v1.35`. This lab uses `1.35.2`, i.e. the same minor version as the exam; re-check the exam version shortly before the attempt.
 
 The control-plane has its taint removed, so a training Pod can be run on it if needed.
 For tasks 3, 5, and 9 the static Pods are automatically recreated by the kubelet after the
@@ -115,13 +115,13 @@ ssh control-plane hostname
 
 | **1** | **CIS Benchmark report** |
 | :---: | :--- |
-| What to do | On the `control-plane` node run `kube-bench` for Kubernetes `1.36.0`. Save the full evidence in `/var/work/tests/artifacts/1/kube-bench.txt`: `kubernetes_version`, `kube_bench_version`, the chosen `benchmark`, `mapping_status`, and then the report itself. `kube-bench` is already installed on `control-plane` (as on the real exam, where the CIS Benchmark tooling is already on the nodes) - you do not need to install or copy it, and it is exactly that node that must be checked. The version mapping built into the pinned `kube-bench 0.16.0` ends with the entry `"1.34": "cis-1.12"` - there are no newer profiles (including any profile for 1.35/1.36) in this version at all. Therefore run `--benchmark cis-1.12` explicitly and label the result on `1.36` as `forced-approximate`, not authoritative compliance. **Run the full set of targets for `cis-1.12`:** `--targets master,node,controlplane,etcd,policies` - this is the map of targets that kube-bench associates with the `cis-1.12` profile; skipping any of them produces an incomplete report. Without an explicit `--targets`, kube-bench detects the type of the current node on its own and runs a narrower set for it instead of this whole list - `etcd` and `policies` are not included in such an auto-detected run, so a report without an explicit `--targets` will be incomplete. |
-| Acceptance criteria | - the evidence contains all four version/mapping fields;<br/>- `mapping_status=forced-approximate` explicitly explains the absence of official coverage for `1.36`;<br/>- the report contains the results of all sections `master`, `node`, `controlplane`, `etcd`, `policies` (not just an arbitrary `[PASS]`/`[WARN]`/`[FAIL]` line);<br/>- the text does not present the result as authoritative CIS compliance for Kubernetes `1.36`. |
+| What to do | On the `control-plane` node run `kube-bench` for Kubernetes `1.35.2`. Save the full evidence in `/var/work/tests/artifacts/1/kube-bench.txt`: `kubernetes_version`, `kube_bench_version`, the chosen `benchmark`, `mapping_status`, and then the report itself. `kube-bench` is already installed on `control-plane` (as on the real exam, where the CIS Benchmark tooling is already on the nodes) - you do not need to install or copy it, and it is exactly that node that must be checked. The version mapping built into the pinned `kube-bench 0.16.0` ends with the entry `"1.34": "cis-1.12"` - there are no newer profiles (including any profile for 1.35) in this version at all. Therefore run `--benchmark cis-1.12` explicitly and label the result on `1.35` as `forced-approximate`, not authoritative compliance. **Run the full set of targets for `cis-1.12`:** `--targets master,node,controlplane,etcd,policies` - this is the map of targets that kube-bench associates with the `cis-1.12` profile; skipping any of them produces an incomplete report. Without an explicit `--targets`, kube-bench detects the type of the current node on its own and runs a narrower set for it instead of this whole list - `etcd` and `policies` are not included in such an auto-detected run, so a report without an explicit `--targets` will be incomplete. |
+| Acceptance criteria | - the evidence contains all four version/mapping fields;<br/>- `mapping_status=forced-approximate` explicitly explains the absence of official coverage for `1.35`;<br/>- the report contains the results of all sections `master`, `node`, `controlplane`, `etcd`, `policies` (not just an arbitrary `[PASS]`/`[WARN]`/`[FAIL]` line);<br/>- the text does not present the result as authoritative CIS compliance for Kubernetes `1.35`. |
 
 <details>
 <summary>💡 Hint for task 1</summary>
 
-The check expects four specific marker lines at the beginning of the file: `kubernetes_version=v1.36.x`, `kube_bench_version=v0.16.0`, `benchmark=cis-1.12`, `mapping_status=forced-approximate` - this is not decorative text but the format the test looks for literally. Run `kube-bench` on the control-plane node itself, not remotely from the worker - kube-bench has no mode to "check another node over SSH". Do not forget `--targets master,node,controlplane,etcd,policies` - without explicitly specifying the targets, the `etcd` and `policies` sections may be skipped. `kube-bench` is already installed together with the configuration in its standard directory `/etc/kube-bench/cfg`, so you do not need to specify `--config-dir` in this lab - use this flag only if you yourself placed `cfg` in another directory and are passing the actual path to that copy.
+The check expects four specific marker lines at the beginning of the file: `kubernetes_version=v1.35.x`, `kube_bench_version=v0.16.0`, `benchmark=cis-1.12`, `mapping_status=forced-approximate` - this is not decorative text but the format the test looks for literally. Run `kube-bench` on the control-plane node itself, not remotely from the worker - kube-bench has no mode to "check another node over SSH". Do not forget `--targets master,node,controlplane,etcd,policies` - without explicitly specifying the targets, the `etcd` and `policies` sections may be skipped. `kube-bench` is already installed together with the configuration in its standard directory `/etc/kube-bench/cfg`, so you do not need to specify `--config-dir` in this lab - use this flag only if you yourself placed `cfg` in another directory and are passing the actual path to that copy.
 </details>
 
 ---
@@ -207,13 +207,13 @@ The flag on etcd is called `--cipher-suites` (without `tls-` at the beginning) -
 
 | **6** | **Integrity check of kubelet and kubectl** |
 | :---: | :--- |
-| What to do | Compare the SHA-256 of the installed `kubelet` on the control-plane and `kubectl` on the worker with the published Kubernetes `v1.36.0` checksums. Save the commands and the `sha256sum -c` result in `/var/work/tests/artifacts/6/binaries.sha256.txt`. Do not use hashes computed from the file being verified as the reference. |
-| Acceptance criteria | - the artifact exists;<br/>- it contains separate successful results for `kubelet` and `kubectl` (`OK`);<br/>- the reference sums were obtained from the official release `v1.36.0`. |
+| What to do | Compare the SHA-256 of the installed `kubelet` on the control-plane and `kubectl` on the worker with the published Kubernetes `v1.35.2` checksums. Save the commands and the `sha256sum -c` result in `/var/work/tests/artifacts/6/binaries.sha256.txt`. Do not use hashes computed from the file being verified as the reference. |
+| Acceptance criteria | - the artifact exists;<br/>- it contains separate successful results for `kubelet` and `kubectl` (`OK`);<br/>- the reference sums were obtained from the official release `v1.35.2`. |
 
 <details>
 <summary>💡 Hint for task 6</summary>
 
-Download the official file `kubelet.sha256`/`kubectl.sha256` from `https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/` (or the corresponding platform) and use `sha256sum -c` with this file against the actual installed binary - it is exactly the output of this command (`kubelet: OK`, `kubectl: OK`) that is needed in the artifact, not just the hash itself.
+Download the official file `kubelet.sha256`/`kubectl.sha256` from `https://dl.k8s.io/release/v1.35.2/bin/linux/amd64/` (or the corresponding platform) and use `sha256sum -c` with this file against the actual installed binary - it is exactly the output of this command (`kubelet: OK`, `kubectl: OK`) that is needed in the artifact, not just the hash itself.
 </details>
 
 ---

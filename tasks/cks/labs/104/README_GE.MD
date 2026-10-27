@@ -68,7 +68,7 @@ Wildcard `*` `resources`/`verbs`-ში პირდაპირ აფართ
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` საჯარო ქვექსელებით |
 | `ssh-keys` | გასაღებები node-ებზე წვდომისთვის |
-| `k8s-1` | ერთკვანძიანი kubeadm-კლასტერი Kubernetes `1.36.0`, containerd და **Calico** |
+| `k8s-1` | ერთკვანძიანი kubeadm-კლასტერი Kubernetes `1.35.2`, containerd და **Calico** |
 | `worker` | სამუშაო მანქანა გამართული `kubectl`-ით და `check_result`-ით |
 
 Control-plane-ზე ჩვეულებრივი Pod-ების გაშვება დაშვებულია, ამიტომ ცალკე worker-node არ არის საჭირო.
@@ -149,7 +149,7 @@ check_result
 
 Pod ობიექტს ნუ დაარედაქტირებთ `kubectl edit pod`-ით - kubelet manifest-ფაილს აკვირდება და API-ს გავლით გაკეთებულ ნებისმიერ ცვლილებას საწყის მდგომარეობაში უკან გადაწერს. დაარედაქტირეთ სწორედ ფაილი `/etc/kubernetes/manifests/kube-apiserver.yaml` node-ის დისკზე. შენახვის შემდეგ დაელოდეთ: kubelet ფაილის ცვლილებას მყისიერად არ აღმოაჩენს, და API server რამდენიმე წამით მიუწვდომელი იქნება static Pod-ის გადატვირთვისას - არ ინერვიულოთ, თუ `curl` ფაილის შენახვისთანავე არაფერს აბრუნებს.
 
-მარტივი `--anonymous-auth=false` აქ **არ გამოდგება**: kubeadm `release-1.36` აგენერირებს kube-apiserver static Pod-ს HTTPS liveness/readiness/startup probes-ით სწორედ `/livez` და `/readyz`-ზე, ხოლო kubelet HTTP probes client credentials-ს არ გადასცემენ - anonymous access-ის სრული გამორთვისას ეს მოთხოვნები იღებენ `401`-ს, kubelet კონტეინერს არაჯანსაღად მიიჩნევს და kube-apiserver-ს შეიძლება ციკლურად გადატვირთავდეს, რაც არღვევს არა მხოლოდ ამ დავალებას, არამედ შემდგომ დავალება 9-საც. სწორი გზაა `AuthenticationConfiguration` `anonymous.enabled: true`-თი და `anonymous.conditions`-ით, რომლებიც anonymous access-ს მხოლოდ საჭირო health-გზებით ზღუდავს:
+მარტივი `--anonymous-auth=false` აქ **არ გამოდგება**: kubeadm `release-1.35` აგენერირებს kube-apiserver static Pod-ს HTTPS liveness/readiness/startup probes-ით სწორედ `/livez` და `/readyz`-ზე, ხოლო kubelet HTTP probes client credentials-ს არ გადასცემენ - anonymous access-ის სრული გამორთვისას ეს მოთხოვნები იღებენ `401`-ს, kubelet კონტეინერს არაჯანსაღად მიიჩნევს და kube-apiserver-ს შეიძლება ციკლურად გადატვირთავდეს, რაც არღვევს არა მხოლოდ ამ დავალებას, არამედ შემდგომ დავალება 9-საც. სწორი გზაა `AuthenticationConfiguration` `anonymous.enabled: true`-თი და `anonymous.conditions`-ით, რომლებიც anonymous access-ს მხოლოდ საჭირო health-გზებით ზღუდავს:
 
 ```yaml
 # /etc/kubernetes/authentication-config.yaml

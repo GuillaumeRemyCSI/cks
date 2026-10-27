@@ -42,7 +42,7 @@ policy-ს, და არ წერთ CEL-ს Kyverno-ს შიგნით. �
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` საჯარო ქვექსელებით |
 | `ssh-keys` | გასაღებები node-ებზე წვდომისთვის |
-| `k8s-1` | ერთკვანძიანი kubeadm-კლასტერი Kubernetes `1.36.0`, containerd და **Calico** |
+| `k8s-1` | ერთკვანძიანი kubeadm-კლასტერი Kubernetes `1.35.2`, containerd და **Calico** |
 | `worker` | სამუშაო მანქანა `kubectl`-ით, Helm-ით და `/usr/local/bin/install-kyverno`-ით |
 
 Control-plane ჩვეულებრივ Pod-ებს უშვებს, ამიტომ ცალკე Kubernetes worker არ იქმნება.
@@ -414,9 +414,9 @@ TASK=108 make delete_cks_task
 
 ## თავსებადობა და image-ების აკრძალვის ზუსტი სემანტიკა
 
-ლაბი აფიქსირებს Kubernetes 1.36.0-სა და Kyverno 1.19-ს ახალ
+ლაბი აფიქსირებს Kubernetes 1.35.2-სა და Kyverno 1.19-ს ახალ
 `policies.kyverno.io/v1` API-სთან გასაცნობად. ეს არის **forward-looking / unsupported combination**: Kyverno
-1.19 ოფიციალურად ტესტირდება Kubernetes 1.33–1.35-თან, და არა 1.36-თან. ლაბორატორიის გარეთ გამოყენებამდე
+1.19 ოფიციალურად ტესტირდება Kubernetes 1.33–1.35-თან, და არა 1.35-თან. ლაბორატორიის გარეთ გამოყენებამდე
 აირჩიეთ მხარდაჭერილი ვერსიების მატრიცა და შეადარეთ release notes.
 
 დავალება 2-ში «`latest`-ის აკრძალვის» ქვეშ იგულისხმება ასევე implicit `latest`-ის აკრძალვა: `nginx`

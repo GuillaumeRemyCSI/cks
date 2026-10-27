@@ -167,7 +167,7 @@ k auth can-i get secrets -n security-104 \
 
 ## 5. anonymous-auth の無効化
 
-単純な `--anonymous-auth=false` はここでは適していません：kubeadm `release-1.36` は
+単純な `--anonymous-auth=false` はここでは適していません：kubeadm `release-1.35` は
 kube-apiserver の static Pod を、`/livez` と `/readyz` への HTTPS liveness/readiness/startup probes とともに
 生成し、kubelet の HTTP probes は client credentials を渡しません - anonymous access を
 完全に無効にすると、これらのリクエストは `401` を受け取り、kubelet は kube-apiserver を

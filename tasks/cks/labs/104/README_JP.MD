@@ -62,7 +62,7 @@ ServiceAccount レベルでは baseline です：Pod が明示的にオーバー
 |---|---|
 | `vpc` | パブリックサブネットを持つ VPC `10.10.0.0/16` |
 | `ssh-keys` | ノードへアクセスするためのキー |
-| `k8s-1` | シングルノードの kubeadm クラスター Kubernetes `1.36.0`、containerd、**Calico** |
+| `k8s-1` | シングルノードの kubeadm クラスター Kubernetes `1.35.2`、containerd、**Calico** |
 | `worker` | 設定済みの `kubectl` と `check_result` を備えた作業マシン |
 
 Control-plane は通常の Pod の実行を許可しているため、別の worker ノードは不要です。
@@ -143,7 +143,7 @@ check_result
 
 Pod オブジェクトを `kubectl edit pod` で編集しないでください - kubelet は manifest ファイルを監視しており、API 経由で行われた変更をすべて元の状態に上書きします。ノードのディスク上のファイル `/etc/kubernetes/manifests/kube-apiserver.yaml` を編集してください。保存した後は待ってください：kubelet がファイルの変更を検出するのは瞬時ではなく、static Pod の再起動中は API server が数秒間利用できなくなります - ファイルを保存した直後に `curl` が何も返さなくても、慌てないでください。
 
-単純な `--anonymous-auth=false` はここでは**適していません**：kubeadm `release-1.36` は、kube-apiserver の static Pod を、まさに `/livez` と `/readyz` への HTTPS liveness/readiness/startup probes とともに生成し、kubelet の HTTP probes は client credentials を渡しません - anonymous access を完全に無効にすると、これらのリクエストは `401` を受け取り、kubelet はコンテナを異常と見なして kube-apiserver をループで再起動する可能性があり、この課題だけでなく、後続の課題 9 も壊れます。正しい方法は、`anonymous.enabled: true` と、anonymous access を必要な health の path のみに制限する `anonymous.conditions` を持つ `AuthenticationConfiguration` です：
+単純な `--anonymous-auth=false` はここでは**適していません**：kubeadm `release-1.35` は、kube-apiserver の static Pod を、まさに `/livez` と `/readyz` への HTTPS liveness/readiness/startup probes とともに生成し、kubelet の HTTP probes は client credentials を渡しません - anonymous access を完全に無効にすると、これらのリクエストは `401` を受け取り、kubelet はコンテナを異常と見なして kube-apiserver をループで再起動する可能性があり、この課題だけでなく、後続の課題 9 も壊れます。正しい方法は、`anonymous.enabled: true` と、anonymous access を必要な health の path のみに制限する `anonymous.conditions` を持つ `AuthenticationConfiguration` です：
 
 ```yaml
 # /etc/kubernetes/authentication-config.yaml

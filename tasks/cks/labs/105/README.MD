@@ -55,8 +55,8 @@ The environment is deployed via Terragrunt in AWS `eu-central-1`:
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` with two public subnets |
 | `ssh-keys` | an SSH key for internal connections |
-| `k8s-1` | a single-node kubeadm Kubernetes `1.36.0` cluster, containerd, Calico; this is the target control-plane |
-| `docker-host` | a separate Ubuntu 22.04 with Docker and a deliberately insecure configuration |
+| `k8s-1` | a single-node kubeadm Kubernetes `1.35.2` cluster, containerd, Calico; this is the target control-plane |
+| `docker-host` | a separate Ubuntu 24.04 with Docker and a deliberately insecure configuration |
 | `worker` | a work machine with `kubectl`, the SSH configuration, and `check_result` |
 
 `worker` has SSH access to the control-plane by its Kubernetes node name and to the separate

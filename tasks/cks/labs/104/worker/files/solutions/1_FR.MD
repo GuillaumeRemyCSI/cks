@@ -167,7 +167,7 @@ k auth can-i get secrets -n security-104 \
 
 ## 5. Désactivation d'anonymous-auth
 
-Un simple `--anonymous-auth=false` ne convient pas ici : kubeadm `release-1.36` génère le
+Un simple `--anonymous-auth=false` ne convient pas ici : kubeadm `release-1.35` génère le
 static Pod de kube-apiserver avec des HTTPS liveness/readiness/startup probes sur `/livez` et
 `/readyz`, et les HTTP probes du kubelet ne transmettent pas de client credentials - avec
 l'anonymous access entièrement désactivé, ces requêtes recevront `401`, et le kubelet commencera à considérer kube-apiserver

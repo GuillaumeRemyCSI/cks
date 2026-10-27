@@ -84,7 +84,7 @@ SBOM が解決するのは、コンポーネントとパッケージのバージ
 |---|---|
 | `vpc` | パブリックサブネットを持つ VPC `10.111.0.0/16` |
 | `ssh-keys` | ノードへのアクセス |
-| `k8s-1` | シングルノードの kubeadm Kubernetes `1.36.0`、containerd、**Calico** |
+| `k8s-1` | シングルノードの kubeadm Kubernetes `1.35.2`、containerd、**Calico** |
 | `worker` | 分析用のワークステーション、`kubectl`、`check_result`、security tools |
 
 インフラは CKA スタイルです：唯一の control-plane ノードで workload が許可されており、
@@ -107,7 +107,7 @@ worker では、次の固定されたバージョンがあらかじめ利用で�
 Helm と `install-kyverno` も worker で利用できますが、Kyverno は意図的に**インストールされていません**：
 そのインストールは、実習 108 と同様に、課題 9 の一部です。`install-kyverno` は Kyverno
 `1.19`/chart `3.9.0` を固定します；upstream の公式 support matrix では、このバージョンは Kubernetes
-`1.33-1.35` ですが、このクラスターは `1.36` です。これはテストされた範囲の外にある、意識的な lab 固有の例外であり
+`1.33-1.35` ですが、このクラスターは `1.35` です。これはテストされた範囲の外にある、意識的な lab 固有の例外であり
 (実習 108 の前例と同様)、公式のサポートが保証されているわけではありません - Kyverno を更新するときは、この例外を解除してください。
 
 ## 前提条件と制約

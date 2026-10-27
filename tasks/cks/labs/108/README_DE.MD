@@ -42,7 +42,7 @@ Die Umgebung wird von Terragrunt in AWS `eu-central-1` ausgerollt:
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` mit öffentlichen Subnetzen |
 | `ssh-keys` | Schlüssel für den Zugriff auf die Nodes |
-| `k8s-1` | Ein-Node-kubeadm-Cluster Kubernetes `1.36.0`, containerd und **Calico** |
+| `k8s-1` | Ein-Node-kubeadm-Cluster Kubernetes `1.35.2`, containerd und **Calico** |
 | `worker` | Arbeitsmaschine mit `kubectl`, Helm und `/usr/local/bin/install-kyverno` |
 
 Die control-plane erlaubt gewöhnliche Pods, daher wird kein separater Kubernetes-worker erstellt.
@@ -412,9 +412,9 @@ TASK=108 make delete_cks_task
 
 ## Kompatibilität und exakte Semantik des Verbots von Images
 
-Das Lab legt Kubernetes 1.36.0 und Kyverno 1.19 fest, um die neuen
+Das Lab legt Kubernetes 1.35.2 und Kyverno 1.19 fest, um die neuen
 APIs `policies.kyverno.io/v1` kennenzulernen. Das ist eine **forward-looking / unsupported combination**: Kyverno
-1.19 wird offiziell mit Kubernetes 1.33–1.35 getestet und nicht mit 1.36. Wähle vor dem Einsatz außerhalb des
+1.19 wird offiziell mit Kubernetes 1.33–1.35 getestet und nicht mit 1.35. Wähle vor dem Einsatz außerhalb des
 Labs eine unterstützte Versionsmatrix und gleiche die release notes ab.
 
 In Aufgabe 2 ist unter dem „Verbot von `latest`“ auch das Verbot des impliziten `latest` zu verstehen: `nginx`

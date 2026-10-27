@@ -57,7 +57,7 @@ L'environnement est déployé via Terragrunt dans AWS `eu-central-1`.
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` avec des sous-réseaux publics |
 | `ssh-keys` | clés pour l'accès au nœud |
-| `k8s-1` | cluster kubeadm mono-nœud avec Kubernetes `1.36.0`, containerd et **Calico** |
+| `k8s-1` | cluster kubeadm mono-nœud avec Kubernetes `1.35.2`, containerd et **Calico** |
 | `worker` | machine de travail avec `kubectl`, `check_result` et un accès SSH au nœud comme `control-plane` |
 
 Pour économiser les ressources, le control-plane est le seul workload-node : le
@@ -209,7 +209,7 @@ Pour un workload ordinaire, utilisez `capabilities.drop: ["ALL"]` et, séparéme
 ---
 | **7** | **User namespaces : `hostUsers: false` et traduction des UID via `uid_map`** |
 | :---: | :--- |
-| Ce qu'on fait | Les User namespaces sont GA dans Kubernetes v1.36 (voir le [chapitre 03](../../course/03/fr.md), le [chapitre 18](../../course/18/fr.md) et le Security Delta v1.36). La théorie explique que `hostUsers: false` traduit le root du conteneur en un host UID non privilégié ; ici, il faut le démontrer sur un processus vivant. Créez dans `security-106` un Pod `userns-probe` sur le nœud préparé avec `spec.hostUsers: false`, l'image `busybox:1.36`, la commande `sleep 3600` ; ne définissez pas `runAsUser` au niveau du Pod, afin que le processus démarre en UID 0 **à l'intérieur** du conteneur. Confirmez `id` dans le conteneur (`uid=0`). Déterminez le host PID du processus du conteneur via `crictl inspect` (par analogie avec le lab 112) ou via `kubectl get pod -o jsonpath` + `crictl ps`, puis sur le nœud lisez `/proc/<host PID>/uid_map`. Enregistrez les deux sorties (`id` dans le conteneur et le contenu de `uid_map`) dans `/var/work/tests/artifacts/6/userns.txt`. |
+| Ce qu'on fait | Les User namespaces sont GA dans Kubernetes v1.35 (voir le [chapitre 03](../../course/03/fr.md), le [chapitre 18](../../course/18/fr.md) et le Security Delta v1.35). La théorie explique que `hostUsers: false` traduit le root du conteneur en un host UID non privilégié ; ici, il faut le démontrer sur un processus vivant. Créez dans `security-106` un Pod `userns-probe` sur le nœud préparé avec `spec.hostUsers: false`, l'image `busybox:1.36`, la commande `sleep 3600` ; ne définissez pas `runAsUser` au niveau du Pod, afin que le processus démarre en UID 0 **à l'intérieur** du conteneur. Confirmez `id` dans le conteneur (`uid=0`). Déterminez le host PID du processus du conteneur via `crictl inspect` (par analogie avec le lab 112) ou via `kubectl get pod -o jsonpath` + `crictl ps`, puis sur le nœud lisez `/proc/<host PID>/uid_map`. Enregistrez les deux sorties (`id` dans le conteneur et le contenu de `uid_map`) dans `/var/work/tests/artifacts/6/userns.txt`. |
 | Critères d'acceptation | Le Pod est `Running`, `spec.hostUsers == false`, il choisit le nœud préparé ; `id` dans le conteneur montre `uid=0(root)` ; `/proc/<host PID>/uid_map` sur le nœud contient une ligne de la forme `0 <host-uid> <length>`, où `<host-uid>` **n'est pas égal à 0** (le root du conteneur est traduit en un host UID non privilégié) et `<length>` vaut au moins `65536` (la plage standard d'UID par Pod) ; l'artefact contient les deux parties de l'evidence. |
 
 <details>

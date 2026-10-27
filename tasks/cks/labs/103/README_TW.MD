@@ -25,9 +25,9 @@ worker)：執行 `kube-bench`(在 worker 節點上由你自己安裝)，並依�
 ## 開始前先自我檢查
 
 <details>
-<summary>1. 為什麼在 Kubernetes 1.36 上用 `cis-1.12` profile 執行 kube-bench，不能稱為 authoritative CIS compliance?</summary>
+<summary>1. 為什麼在 Kubernetes 1.35 上用 `cis-1.12` profile 執行 kube-bench，不能稱為 authoritative CIS compliance?</summary>
 
-本實驗固定使用的 `kube-bench 0.16.0` 版本完全沒有 1.36 的 profile - 它內建的 version mapping 只到 `"1.34": "cis-1.12"`(目前可用的最新 profile)。在 1.36 的叢集上明確指定 `--benchmark cis-1.12`，是強制使用最接近的現有 profile 作為 approximation：部分檢查對較新的版本可能已不適用，而針對 1.36 才有的新 security-relevant 參數，這個 profile 還沒有涵蓋。這是有價值的實務訊號，但不是針對 1.36 版本的 formal compliance statement。
+本實驗固定使用的 `kube-bench 0.16.0` 版本完全沒有 1.35 的 profile - 它內建的 version mapping 只到 `"1.34": "cis-1.12"`(目前可用的最新 profile)。在 1.35 的叢集上明確指定 `--benchmark cis-1.12`，是強制使用最接近的現有 profile 作為 approximation：部分檢查對較新的版本可能已不適用，而針對 1.35 才有的新 security-relevant 參數，這個 profile 還沒有涵蓋。這是有價值的實務訊號，但不是針對 1.35 版本的 formal compliance statement。
 </details>
 
 <details>
@@ -77,10 +77,10 @@ flowchart TB
 |---|---|
 | `vpc` | VPC `10.103.0.0/16`，含公有子網路 |
 | `ssh-keys` | 用於存取節點的 SSH 金鑰 |
-| `k8s-1` | Kubernetes `1.36.0`(kubeadm)、containerd 與 Calico:control-plane + 一個 worker 節點 |
+| `k8s-1` | Kubernetes `1.35.2`(kubeadm)、containerd 與 Calico:control-plane + 一個 worker 節點 |
 | `worker` | 工作機(bastion)，具備 `kubectl`、SSH 存取與 `check_result`(這裡不需要 `kube-bench` 本身 - 它已經在 `control-plane` 上，並會在實驗過程中安裝到 worker 節點上) |
 
-> **版本與考試。** 截至 2026-09-06，官方 CKS exam 以 Kubernetes `v1.35` 為準。本實驗使用 `1.36.0`，因此所有與該版本相關的內容，都是 forward-looking 的學習情境，而不是對目前考試版本的聲明。
+> **版本與考試。** 截至 2026-09-06，官方 CKS exam 以 Kubernetes `v1.35` 為準。本實驗使用 `1.35.2`，因此所有與該版本相關的內容，都是 forward-looking 的學習情境，而不是對目前考試版本的聲明。
 
 control-plane 上的 taint 已移除，因此必要時可以在上面執行學習用的 Pod。
 對於任務 3、5 與 9，在儲存修改後的 manifest 之後，static Pods 會由 kubelet 自動重新建立；在任務 2 與 10 中，修改 `KubeletConfiguration` 之後需要手動重新啟動 kubelet(`systemctl restart kubelet`)。
@@ -113,13 +113,13 @@ ssh control-plane hostname
 
 | **1** | **CIS Benchmark 報告** |
 | :---: | :--- |
-| 要做什麼 | 在 `control-plane` 節點上對 Kubernetes `1.36.0` 執行 `kube-bench`。將完整的 evidence 儲存到 `/var/work/tests/artifacts/1/kube-bench.txt`:`kubernetes_version`、`kube_bench_version`、選用的 `benchmark`、`mapping_status`，然後是報告本身。`kube-bench` 已經安裝在 `control-plane` 上(就像真正的考試中，節點上已經有 CIS Benchmark 工具一樣)- 不需要安裝或複製它，要檢查的正是這個節點。固定版本 `kube-bench 0.16.0` 內建的 version mapping 以 `"1.34": "cis-1.12"` 這筆記錄結束 - 這個版本中完全沒有更新的 profile(包括任何 1.35/1.36 的 profile)。因此請明確執行 `--benchmark cis-1.12`，並把 `1.36` 上的結果標記為 `forced-approximate`，而不是 authoritative compliance。**請執行 `cis-1.12` 的完整 targets 集合：** `--targets master,node,controlplane,etcd,policies` - 這是 kube-bench 對應到 `cis-1.12` profile 的 targets 對照表；漏掉其中任何一個都會得到不完整的報告。沒有明確的 `--targets` 時，kube-bench 會自己判斷目前節點的類型，並為它選取的不是整份清單，而是範圍更窄的一組 - `etcd` 與 `policies` 不會出現在這種自動偵測的執行中，因此沒有明確 `--targets` 的報告會是不完整的。 |
-| 驗收標準 | - evidence 包含全部四個 version/mapping 欄位；<br/>- `mapping_status=forced-approximate` 明確說明了為什麼沒有 `1.36` 的官方涵蓋；<br/>- 報告中有 `master`、`node`、`controlplane`、`etcd`、`policies` 所有區段的結果(而不只是任意一行 `[PASS]`/`[WARN]`/`[FAIL]`);<br/>- 文字沒有把結果說成是 Kubernetes `1.36` 的 authoritative CIS compliance。 |
+| 要做什麼 | 在 `control-plane` 節點上對 Kubernetes `1.35.2` 執行 `kube-bench`。將完整的 evidence 儲存到 `/var/work/tests/artifacts/1/kube-bench.txt`:`kubernetes_version`、`kube_bench_version`、選用的 `benchmark`、`mapping_status`，然後是報告本身。`kube-bench` 已經安裝在 `control-plane` 上(就像真正的考試中，節點上已經有 CIS Benchmark 工具一樣)- 不需要安裝或複製它，要檢查的正是這個節點。固定版本 `kube-bench 0.16.0` 內建的 version mapping 以 `"1.34": "cis-1.12"` 這筆記錄結束 - 這個版本中完全沒有更新的 profile(包括任何 1.35 的 profile)。因此請明確執行 `--benchmark cis-1.12`，並把 `1.35` 上的結果標記為 `forced-approximate`，而不是 authoritative compliance。**請執行 `cis-1.12` 的完整 targets 集合：** `--targets master,node,controlplane,etcd,policies` - 這是 kube-bench 對應到 `cis-1.12` profile 的 targets 對照表；漏掉其中任何一個都會得到不完整的報告。沒有明確的 `--targets` 時，kube-bench 會自己判斷目前節點的類型，並為它選取的不是整份清單，而是範圍更窄的一組 - `etcd` 與 `policies` 不會出現在這種自動偵測的執行中，因此沒有明確 `--targets` 的報告會是不完整的。 |
+| 驗收標準 | - evidence 包含全部四個 version/mapping 欄位；<br/>- `mapping_status=forced-approximate` 明確說明了為什麼沒有 `1.35` 的官方涵蓋；<br/>- 報告中有 `master`、`node`、`controlplane`、`etcd`、`policies` 所有區段的結果(而不只是任意一行 `[PASS]`/`[WARN]`/`[FAIL]`);<br/>- 文字沒有把結果說成是 Kubernetes `1.35` 的 authoritative CIS compliance。 |
 
 <details>
 <summary>💡 任務 1 的提示</summary>
 
-檢查預期檔案開頭有四行具體的標記字串：`kubernetes_version=v1.36.x`、`kube_bench_version=v0.16.0`、`benchmark=cis-1.12`、`mapping_status=forced-approximate` - 這不是裝飾性的文字，而是測試逐字尋找的格式。請在 control-plane node 本身上執行 `kube-bench`，而不是從 worker 遠端執行 - kube-bench 沒有「透過 SSH 檢查別的節點」的模式。別忘了 `--targets master,node,controlplane,etcd,policies` - 沒有明確指定 targets,`etcd` 與 `policies` 區段可能會被跳過。`kube-bench` 已經連同設定一起安裝在它的標準目錄 `/etc/kube-bench/cfg`，因此在本實驗中不需要指定 `--config-dir` - 只有在你自己把 `cfg` 放在其他目錄，並傳入該副本的實際路徑時，才使用這個旗標。
+檢查預期檔案開頭有四行具體的標記字串：`kubernetes_version=v1.35.x`、`kube_bench_version=v0.16.0`、`benchmark=cis-1.12`、`mapping_status=forced-approximate` - 這不是裝飾性的文字，而是測試逐字尋找的格式。請在 control-plane node 本身上執行 `kube-bench`，而不是從 worker 遠端執行 - kube-bench 沒有「透過 SSH 檢查別的節點」的模式。別忘了 `--targets master,node,controlplane,etcd,policies` - 沒有明確指定 targets,`etcd` 與 `policies` 區段可能會被跳過。`kube-bench` 已經連同設定一起安裝在它的標準目錄 `/etc/kube-bench/cfg`，因此在本實驗中不需要指定 `--config-dir` - 只有在你自己把 `cfg` 放在其他目錄，並傳入該副本的實際路徑時，才使用這個旗標。
 </details>
 
 ---
@@ -205,13 +205,13 @@ etcd 上的旗標叫 `--cipher-suites`(開頭沒有 `tls-`)- 它與 kube-apiserv
 
 | **6** | **kubelet 與 kubectl 的完整性驗證** |
 | :---: | :--- |
-| 要做什麼 | 將 control-plane 上已安裝的 `kubelet` 與 worker 上已安裝的 `kubectl` 的 SHA-256，與 Kubernetes `v1.36.0` 公布的 checksum 比對。把指令與 `sha256sum -c` 的結果儲存到 `/var/work/tests/artifacts/6/binaries.sha256.txt`。不要把從被檢查的檔案計算出的雜湊值當作基準。 |
-| 驗收標準 | - artifact 存在；<br/>- 其中有 `kubelet` 與 `kubectl` 各自獨立的成功結果(`OK`);<br/>- 基準 checksum 取自官方 release `v1.36.0`。 |
+| 要做什麼 | 將 control-plane 上已安裝的 `kubelet` 與 worker 上已安裝的 `kubectl` 的 SHA-256，與 Kubernetes `v1.35.2` 公布的 checksum 比對。把指令與 `sha256sum -c` 的結果儲存到 `/var/work/tests/artifacts/6/binaries.sha256.txt`。不要把從被檢查的檔案計算出的雜湊值當作基準。 |
+| 驗收標準 | - artifact 存在；<br/>- 其中有 `kubelet` 與 `kubectl` 各自獨立的成功結果(`OK`);<br/>- 基準 checksum 取自官方 release `v1.35.2`。 |
 
 <details>
 <summary>💡 任務 6 的提示</summary>
 
-從 `https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/`(或對應的平台)下載官方檔案 `kubelet.sha256`/`kubectl.sha256`，並用 `sha256sum -c` 以這個檔案對照實際安裝的二進位檔 - artifact 中需要的正是這個指令的輸出(`kubelet: OK`、`kubectl: OK`)，而不只是雜湊值本身。
+從 `https://dl.k8s.io/release/v1.35.2/bin/linux/amd64/`(或對應的平台)下載官方檔案 `kubelet.sha256`/`kubectl.sha256`，並用 `sha256sum -c` 以這個檔案對照實際安裝的二進位檔 - artifact 中需要的正是這個指令的輸出(`kubelet: OK`、`kubectl: OK`)，而不只是雜湊值本身。
 </details>
 
 ---

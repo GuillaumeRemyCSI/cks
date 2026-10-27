@@ -41,7 +41,7 @@ Der audit log protokolliert Ereignisse auf REQUEST-Ebene an den API server (wer,
 
 | Komponente | Zweck |
 |---|---|
-| `k8s-1` | Ein-Node-Kubernetes `1.36.0`, containerd und Calico; der Node-Name ist `control-plane` |
+| `k8s-1` | Ein-Node-Kubernetes `1.35.2`, containerd und Calico; der Node-Name ist `control-plane` |
 | `worker` | Arbeitsmaschine mit `kubectl`, `check_result` und SSH-Zugriff `ssh control-plane` |
 | `runtime-112` | vorbereiteter Namespace; darin ist bereits das Secret `audit-secret` |
 

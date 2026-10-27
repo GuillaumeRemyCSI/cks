@@ -37,7 +37,7 @@ control-plane 上的 `kubeadm upgrade` 會重新建立各元件(kube-apiserver�
 
 ## 基礎架構
 
-Terragrunt 在 `eu-central-1` 建立 self-managed 的 Kubernetes `1.35.4`、containerd、
+Terragrunt 在 `eu-central-1` 建立 self-managed 的 Kubernetes `1.35.2`、containerd、
 Calico CNI:
 
 | 元件 | 用途 |

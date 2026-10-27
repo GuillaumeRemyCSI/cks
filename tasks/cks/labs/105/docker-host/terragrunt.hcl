@@ -53,7 +53,7 @@ inputs = {
     }
     exam_time_minutes = "360"
     test_url          = ""
-    task_script_url   = "https://raw.githubusercontent.com/ViktorUJ/cks/master/tasks/cks/labs/105/docker-host/files/worker.sh"
+    task_script_url   = "${local.vars.locals.raw_base}/tasks/cks/labs/105/docker-host/files/worker.sh"
     ssh = {
       private_key = dependency.ssh-keys.outputs.private_key
       pub_key     = dependency.ssh-keys.outputs.pub_key

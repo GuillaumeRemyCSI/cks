@@ -36,7 +36,7 @@ Kubernetes `1.35.x`-ზე; თქვენი ამოცანაა ორ�
 
 ## ინფრასტრუქტურა
 
-Terragrunt ქმნის self-managed Kubernetes `1.35.4`-ს `eu-central-1`-ში, containerd,
+Terragrunt ქმნის self-managed Kubernetes `1.35.2`-ს `eu-central-1`-ში, containerd,
 Calico CNI:
 
 | კომპონენტი | დანიშნულება |

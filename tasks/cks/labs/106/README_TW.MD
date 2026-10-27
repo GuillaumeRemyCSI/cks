@@ -55,7 +55,7 @@ Kubelet 會自己以相對於其 seccomp root(預設為 `/var/lib/kubelet/seccom
 |---|---|
 | `vpc` | VPC `10.10.0.0/16`，含公有子網路 |
 | `ssh-keys` | 用於存取節點的金鑰 |
-| `k8s-1` | 單節點 kubeadm 叢集 Kubernetes `1.36.0`、containerd 與 **Calico** |
+| `k8s-1` | 單節點 kubeadm 叢集 Kubernetes `1.35.2`、containerd 與 **Calico** |
 | `worker` | 具備 `kubectl`、`check_result`，並以 `control-plane` 身分 SSH 存取節點的工作機 |
 
 為了節省資源，control-plane 是唯一的 workload 節點：它的
@@ -207,7 +207,7 @@ file capabilities)，但不會移除已經加入 bounding/effective set 的 `SYS
 ---
 | **7** | **User namespaces:`hostUsers: false` 與透過 `uid_map` 的 UID 轉換** |
 | :---: | :--- |
-| 要做什麼 | User namespaces 在 Kubernetes v1.36 中為 GA(參見 [第 03 章](../../course/03/tw.md)、[第 18 章](../../course/18/tw.md) 以及 Security Delta v1.36)。理論說明 `hostUsers: false` 會把容器的 root 轉換為非特權的 host UID；這裡需要在執行中的行程上證明這一點。在 `security-106` 中，於準備好的節點上建立 Pod `userns-probe`，帶有 `spec.hostUsers: false`、映像 `busybox:1.36`、指令 `sleep 3600`；不要設定 Pod-level `runAsUser`，讓行程在容器「內部」以 UID 0 啟動。確認容器內的 `id`(`uid=0`)。透過 `crictl inspect`(比照實驗 112 的做法)或透過 `kubectl get pod -o jsonpath` + `crictl ps` 找出容器行程的 host PID，然後在節點上讀取 `/proc/<host PID>/uid_map`。把兩個輸出(容器內的 `id` 與 `uid_map` 的內容)儲存到 `/var/work/tests/artifacts/6/userns.txt`。 |
+| 要做什麼 | User namespaces 在 Kubernetes v1.35 中為 GA(參見 [第 03 章](../../course/03/tw.md)、[第 18 章](../../course/18/tw.md) 以及 Security Delta v1.35)。理論說明 `hostUsers: false` 會把容器的 root 轉換為非特權的 host UID；這裡需要在執行中的行程上證明這一點。在 `security-106` 中，於準備好的節點上建立 Pod `userns-probe`，帶有 `spec.hostUsers: false`、映像 `busybox:1.36`、指令 `sleep 3600`；不要設定 Pod-level `runAsUser`，讓行程在容器「內部」以 UID 0 啟動。確認容器內的 `id`(`uid=0`)。透過 `crictl inspect`(比照實驗 112 的做法)或透過 `kubectl get pod -o jsonpath` + `crictl ps` 找出容器行程的 host PID，然後在節點上讀取 `/proc/<host PID>/uid_map`。把兩個輸出(容器內的 `id` 與 `uid_map` 的內容)儲存到 `/var/work/tests/artifacts/6/userns.txt`。 |
 | 驗收標準 | Pod 為 `Running`,`spec.hostUsers == false`，並選擇準備好的節點；容器內的 `id` 顯示 `uid=0(root)`；節點上的 `/proc/<host PID>/uid_map` 包含形如 `0 <host-uid> <length>` 的行，其中 `<host-uid>` **不等於 0**(容器的 root 被轉換為非特權的 host UID)，且 `<length>` 至少等於 `65536`(標準的 per-Pod UID 範圍);artifact 包含 evidence 的兩部分。 |
 
 <details>

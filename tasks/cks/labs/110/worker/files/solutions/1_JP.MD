@@ -218,7 +218,7 @@ agent=$(kubectl -n kube-system get pods -l k8s-app=cilium -o jsonpath='{.items[0
   printf '\n'
   cilium version --client
   printf 'Cilium CLI=v0.19.7\n'
-  printf 'Cilium data plane=verify current supported lab build against Kubernetes 1.36 requirements matrix\n'
+  printf 'Cilium data plane=verify current supported lab build against Kubernetes 1.35 requirements matrix\n'
   printf 'Istio=1.30.4\n'
 } > /var/work/tests/artifacts/4/tool-versions.txt
 cat /var/work/tests/artifacts/4/tool-versions.txt

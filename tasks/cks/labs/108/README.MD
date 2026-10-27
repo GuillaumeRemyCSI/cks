@@ -42,7 +42,7 @@ The environment is deployed by Terragrunt in AWS `eu-central-1`:
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` with public subnets |
 | `ssh-keys` | keys for access to the nodes |
-| `k8s-1` | a single-node kubeadm Kubernetes `1.36.0` cluster, containerd, and **Calico** |
+| `k8s-1` | a single-node kubeadm Kubernetes `1.35.2` cluster, containerd, and **Calico** |
 | `worker` | a work machine with `kubectl`, Helm, and `/usr/local/bin/install-kyverno` |
 
 The control-plane allows regular Pods, so a separate Kubernetes worker is not created.
@@ -414,10 +414,10 @@ TASK=108 make delete_cks_task
 
 ## Compatibility and the exact semantics of the image prohibition
 
-The lab pins Kubernetes 1.36.0 and Kyverno 1.19 to get to know the new
-`policies.kyverno.io/v1` API. This is a **forward-looking / unsupported combination**: Kyverno
-1.19 is officially tested with Kubernetes 1.33–1.35, and not 1.36. Before applying outside the
-lab, choose a supported version matrix and check the release notes.
+The lab pins Kubernetes 1.35.2 and Kyverno 1.19 to get to know the new
+`policies.kyverno.io/v1` API. This combination is within the officially tested range: Kyverno
+1.19 is tested with Kubernetes 1.33–1.35. Before applying outside the lab, re-check the
+version matrix and the release notes.
 
 In task 2 the "prohibition of `latest`" also means the prohibition of an implicit `latest`: `nginx`
 without a tag or digest is just as unacceptable as `nginx:latest`. Only images with an explicit

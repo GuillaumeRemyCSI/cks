@@ -196,10 +196,10 @@ VERSION="$(echo $k8_version_sh| cut -d'.' -f1).$(echo $k8_version_sh| cut -d'.' 
 
 case $acrh in
 x86_64)
-  crictl_url="https://github.com/kubernetes-sigs/cri-tools/releases/download/v$k8_version_sh/crictl-v$k8_version_sh-linux-amd64.tar.gz"
+  crictl_url="https://github.com/kubernetes-sigs/cri-tools/releases/download/v$VERSION.0/crictl-v$VERSION.0-linux-amd64.tar.gz"
 ;;
 aarch64)
-  crictl_url="https://github.com/kubernetes-sigs/cri-tools/releases/download/v$k8_version_sh/crictl-v$k8_version_sh-linux-arm.tar.gz"
+  crictl_url="https://github.com/kubernetes-sigs/cri-tools/releases/download/v$VERSION.0/crictl-v$VERSION.0-linux-arm64.tar.gz"
 ;;
 esac
 wget -O crictl.tar.gz $crictl_url

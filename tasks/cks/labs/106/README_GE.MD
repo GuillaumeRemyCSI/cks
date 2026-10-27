@@ -57,7 +57,7 @@ Kubelet თავად ითვლის სრულ გზას ფარ�
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` საჯარო ქვექსელებით |
 | `ssh-keys` | გასაღებები node-ზე წვდომისთვის |
-| `k8s-1` | ერთკვანძიანი kubeadm-კლასტერი Kubernetes `1.36.0`, containerd და **Calico** |
+| `k8s-1` | ერთკვანძიანი kubeadm-კლასტერი Kubernetes `1.35.2`, containerd და **Calico** |
 | `worker` | სამუშაო მანქანა `kubectl`-ით, `check_result`-ით და SSH-წვდომით node-ზე როგორც `control-plane` |
 
 რესურსების დასაზოგად control-plane ერთადერთი workload-node-ია: მასზე მოხსნილია
@@ -209,7 +209,7 @@ file capabilities), მაგრამ არ შლის `SYS_ADMIN`-ს, რ�
 ---
 | **7** | **User namespaces: `hostUsers: false` და UID-ის ტრანსლაცია `uid_map`-ით** |
 | :---: | :--- |
-| რას ვაკეთებთ | User namespaces GA Kubernetes v1.36-ში (იხ. [თავი 03](../../course/03/ge.md), [თავი 18](../../course/18/ge.md) და Security Delta v1.36). თეორია განმარტავს, რომ `hostUsers: false` კონტეინერის root-ს არაპრივილეგირებულ host UID-ზე ასახავს; აქ ეს ცოცხალ პროცესზე უნდა დაამტკიცოთ. შექმენით `security-106`-ში Pod `userns-probe` მომზადებულ node-ზე `spec.hostUsers: false`-ით, image-ით `busybox:1.36`, ბრძანებით `sleep 3600`; Pod-level `runAsUser` ნუ მიუთითებთ, რათა პროცესი UID 0-ით გაეშვას კონტეინერის **შიგნით**. დაადასტურეთ `id` კონტეინერის შიგნით (`uid=0`). განსაზღვრეთ კონტეინერის პროცესის host PID `crictl inspect`-ით (ლაბ 112-ის ანალოგიით) ან `kubectl get pod -o jsonpath` + `crictl ps`-ით, შემდეგ node-ზე წაიკითხეთ `/proc/<host PID>/uid_map`. შეინახეთ ორივე გამოტანა (`id` კონტეინერის შიგნით და `uid_map`-ის შიგთავსი) `/var/work/tests/artifacts/6/userns.txt`-ში. |
+| რას ვაკეთებთ | User namespaces GA Kubernetes v1.35-ში (იხ. [თავი 03](../../course/03/ge.md), [თავი 18](../../course/18/ge.md) და Security Delta v1.35). თეორია განმარტავს, რომ `hostUsers: false` კონტეინერის root-ს არაპრივილეგირებულ host UID-ზე ასახავს; აქ ეს ცოცხალ პროცესზე უნდა დაამტკიცოთ. შექმენით `security-106`-ში Pod `userns-probe` მომზადებულ node-ზე `spec.hostUsers: false`-ით, image-ით `busybox:1.36`, ბრძანებით `sleep 3600`; Pod-level `runAsUser` ნუ მიუთითებთ, რათა პროცესი UID 0-ით გაეშვას კონტეინერის **შიგნით**. დაადასტურეთ `id` კონტეინერის შიგნით (`uid=0`). განსაზღვრეთ კონტეინერის პროცესის host PID `crictl inspect`-ით (ლაბ 112-ის ანალოგიით) ან `kubectl get pod -o jsonpath` + `crictl ps`-ით, შემდეგ node-ზე წაიკითხეთ `/proc/<host PID>/uid_map`. შეინახეთ ორივე გამოტანა (`id` კონტეინერის შიგნით და `uid_map`-ის შიგთავსი) `/var/work/tests/artifacts/6/userns.txt`-ში. |
 | მიღების კრიტერიუმები | Pod `Running`-ია, `spec.hostUsers == false`, ირჩევს მომზადებულ node-ს; `id` კონტეინერის შიგნით აჩვენებს `uid=0(root)`-ს; `/proc/<host PID>/uid_map` node-ზე შეიცავს სტრიქონს ფორმით `0 <host-uid> <length>`, სადაც `<host-uid>` **არ უდრის 0-ს** (კონტეინერის root ასახულია არაპრივილეგირებულ host UID-ზე) და `<length>` უდრის სულ მცირე `65536`-ს (სტანდარტული per-Pod UID-დიაპაზონი); artifact შეიცავს evidence-ის ორივე ნაწილს. |
 
 <details>

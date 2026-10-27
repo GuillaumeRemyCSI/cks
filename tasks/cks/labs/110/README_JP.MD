@@ -37,7 +37,7 @@ mesh の内部での成功したレスポンスが証明するのは、2 つの 
 
 ## インフラ
 
-Terragrunt が `eu-central-1` に Kubernetes `1.36.0` を作成します：
+Terragrunt が `eu-central-1` に Kubernetes `1.35.2` を作成します：
 
 | コンポーネント | 用途 |
 |---|---|
@@ -47,8 +47,8 @@ Terragrunt が `eu-central-1` に Kubernetes `1.36.0` を作成します：
 | `worker` | `kubectl`、`cilium`、`istioctl`、`check_result`、ノードへの SSH aliases を備えた作業マシン |
 
 2026-08-31 に確認済みのマトリックス (ビルドのたびに照合してください)：lab の Kubernetes は
-`1.36.0`；Cilium の data plane は、サポートされている lab ビルドで、その
-Kubernetes `1.36` との互換性は最新の requirements matrix で確認する必要があります；Cilium CLI `0.19.7`
+`1.35.2`；Cilium の data plane は、サポートされている lab ビルドで、その
+Kubernetes `1.35` との互換性は最新の requirements matrix で確認する必要があります；Cilium CLI `0.19.7`
 (Cilium `1.17+` と互換)；Istio `1.30.4` (ブランチ `1.30` は Kubernetes
 `1.32-1.36` を公式にサポート)。試験のバージョンは、ここでは lab tooling の互換性を決めません；LF のデータによれば
 現在は `v1.34` で、試験の前に別途確認されます。
@@ -131,7 +131,7 @@ Pod が起動しない場合 (`ContainerCreating` のまま止まり、イベン
 ---
 | **4** | **Cilium transparent encryption を有効にする** |
 | :---: | :--- |
-| やること | • まず、Kubernetes、Cilium agent、Cilium CLI のバージョンを `/var/work/tests/artifacts/4/tool-versions.txt` に記録し、data plane が Kubernetes `1.36` をサポートしていることを確認します。<br/>• `cilium install` が作成した既存の Helm release で WireGuard を有効にします：`cilium upgrade --version 1.20.1 --set encryption.enabled=true --set encryption.type=wireguard --wait`。<br/>• agents を再起動します (`kubectl -n kube-system rollout restart daemonset/cilium`)：Helm は ConfigMap のみを変更し、DaemonSet のテンプレートは以前のままだからです。<br/>• `cilium-config` (`enable-wireguard: "true"`) と、両方の Cilium agents の準備状態を確認します。<br/>• ConfigMap の直接の patch は、確認済みの rollback を必須とする短時間の学習用 baseline プローブとしてのみ許容されます。`cilium encrypt enable` というコマンドを探さないでください：クライアントの `cilium` CLI にそのようなサブコマンドはありません。<br/>• agent 側の `cilium-dbg encrypt status` と `cilium-dbg debuginfo --output json` を `/var/work/tests/artifacts/4/cilium-encrypt-status.txt` に保存します (`cilium-dbg status` にはフラグ `--all-encryption` がありません)。 |
+| やること | • まず、Kubernetes、Cilium agent、Cilium CLI のバージョンを `/var/work/tests/artifacts/4/tool-versions.txt` に記録し、data plane が Kubernetes `1.35` をサポートしていることを確認します。<br/>• `cilium install` が作成した既存の Helm release で WireGuard を有効にします：`cilium upgrade --version 1.20.1 --set encryption.enabled=true --set encryption.type=wireguard --wait`。<br/>• agents を再起動します (`kubectl -n kube-system rollout restart daemonset/cilium`)：Helm は ConfigMap のみを変更し、DaemonSet のテンプレートは以前のままだからです。<br/>• `cilium-config` (`enable-wireguard: "true"`) と、両方の Cilium agents の準備状態を確認します。<br/>• ConfigMap の直接の patch は、確認済みの rollback を必須とする短時間の学習用 baseline プローブとしてのみ許容されます。`cilium encrypt enable` というコマンドを探さないでください：クライアントの `cilium` CLI にそのようなサブコマンドはありません。<br/>• agent 側の `cilium-dbg encrypt status` と `cilium-dbg debuginfo --output json` を `/var/work/tests/artifacts/4/cilium-encrypt-status.txt` に保存します (`cilium-dbg status` にはフラグ `--all-encryption` がありません)。 |
 | 受け入れ基準 | • Version evidence が存在し、DaemonSet `kube-system/cilium` の実際のイメージと一致している<br/>• Cilium agents (DaemonSet) が完全に Ready である<br/>• Status が WireGuard を示し、同時に IPsec を示していない<br/>• Debuginfo JSON に、ノード間の状態の peer/allowed-IP (または remote-node) の evidence が含まれている<br/>• ConfigMap `kube-system/cilium-config` に、Helm values から適用された effective な設定として `enable-wireguard: "true"` が含まれている<br/>• 1 つの agent Pod を restart しても設定が維持される (checker が Pod を再起動して、status を再確認する) |
 
 <details>

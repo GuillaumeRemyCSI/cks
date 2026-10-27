@@ -14,7 +14,7 @@ du standard, afin que le comportement ne change pas avec une future mise à jour
 ```bash
 kubectl label namespace psa-restricted-107 \
   pod-security.kubernetes.io/enforce=restricted \
-  pod-security.kubernetes.io/enforce-version=v1.36
+  pod-security.kubernetes.io/enforce-version=v1.35
 ```
 
 Vérifions l'admission sans enregistrer l'objet dangereux. `hostNetwork` est interdit par le niveau
@@ -113,14 +113,14 @@ ajoute à l'audit event de l'API server l'annotation
 ```bash
 kubectl label namespace psa-observe-107 \
   pod-security.kubernetes.io/audit=baseline \
-  pod-security.kubernetes.io/audit-version=v1.36 \
+  pod-security.kubernetes.io/audit-version=v1.35 \
   pod-security.kubernetes.io/warn=baseline \
-  pod-security.kubernetes.io/warn-version=v1.36
+  pod-security.kubernetes.io/warn-version=v1.35
 ```
 
-> **Réserve de version.** `v1.36` est figée pour Kubernetes 1.36.0 dans cette infrastructure
-> pédagogique. Au 2026-09-06, le CKS officiel est orienté sur `v1.35` ; c'est un
-> exemple forward-looking, et pour vous préparer à l'examen, utilisez `*-version=v1.35`.
+> **Réserve de version.** `v1.35` est figée pour Kubernetes 1.35.2 dans cette infrastructure
+> pédagogique. Au 2026-09-06, le CKS officiel est orienté sur `v1.35` également : cet
+> exemple correspond donc à la version de l'examen.
 
 > **Limite de la preuve d'audit.** Le lab ne configure pas d'audit-log sink, c'est pourquoi
 > `pod-security.kubernetes.io/audit-violations` ne peut pas être extrait par la commande `kubectl`.
@@ -317,7 +317,7 @@ Nous activons enforce - le Pod existant n'est pas touché :
 ```bash
 kubectl label namespace psa-controller-107 \
   pod-security.kubernetes.io/enforce=restricted \
-  pod-security.kubernetes.io/enforce-version=v1.36
+  pod-security.kubernetes.io/enforce-version=v1.35
 kubectl -n psa-controller-107 get pod
 # controller-app-xxxx est toujours Running - PSA n'agit pas sur les objets déjà existants
 ```
@@ -327,7 +327,7 @@ Nous supprimons le Pod - le ReplicaSet essaie de créer un remplaçant et reçoi
 ```bash
 kubectl -n psa-controller-107 delete pod -l app=controller-app
 kubectl -n psa-controller-107 get events --sort-by=.lastTimestamp | tail -5
-# ... FailedCreate ... violates PodSecurity "restricted:v1.36": ...
+# ... FailedCreate ... violates PodSecurity "restricted:v1.35": ...
 kubectl -n psa-controller-107 get deploy controller-app
 # controller-app   0/1     1            0           ...   <- READY 0/1, AVAILABLE 0
 ```

@@ -1,0 +1,5 @@
+# Données propres à une session (contiennent des mots de passe SSH).
+classroom.env
+participants.txt
+out/
+logs/

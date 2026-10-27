@@ -68,7 +68,7 @@ El entorno se despliega mediante Terragrunt en AWS `eu-central-1`:
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` con subredes públicas |
 | `ssh-keys` | claves para acceder a los nodos |
-| `k8s-1` | clúster kubeadm de un solo nodo con Kubernetes `1.36.0`, containerd y **Calico** |
+| `k8s-1` | clúster kubeadm de un solo nodo con Kubernetes `1.35.2`, containerd y **Calico** |
 | `worker` | máquina de trabajo con `kubectl` configurado y `check_result` |
 
 El control-plane permite ejecutar Pods normales, por lo que no hace falta un nodo worker aparte.
@@ -149,7 +149,7 @@ Eliminar solo el `ClusterRoleBinding` sin eliminar el `ClusterRole` deja en el c
 
 No edites el objeto Pod con `kubectl edit pod`: el kubelet vigila el archivo de manifest y devolverá al estado original cualquier cambio hecho a través de la API. Edita precisamente el archivo `/etc/kubernetes/manifests/kube-apiserver.yaml` en el disco del nodo. Tras guardar, espera: el kubelet no detecta el cambio del archivo al instante, y el API server no estará disponible unos segundos durante el reinicio del static Pod; no te asustes si `curl` justo después de guardar el archivo no devuelve nada.
 
-Un simple `--anonymous-auth=false` aquí **no sirve**: kubeadm `release-1.36` genera el static Pod de kube-apiserver con HTTPS liveness/readiness/startup probes precisamente en `/livez` y `/readyz`, y los HTTP probes del kubelet no transmiten client credentials; con el anonymous access completamente desactivado, esas peticiones reciben `401`, el kubelet considera el contenedor no sano y puede reiniciar kube-apiserver en bucle, lo que rompe no solo esta tarea, sino también la posterior tarea 9. El camino correcto es un `AuthenticationConfiguration` con `anonymous.enabled: true` y `anonymous.conditions` que limiten el anonymous access únicamente a las rutas de health necesarias:
+Un simple `--anonymous-auth=false` aquí **no sirve**: kubeadm `release-1.35` genera el static Pod de kube-apiserver con HTTPS liveness/readiness/startup probes precisamente en `/livez` y `/readyz`, y los HTTP probes del kubelet no transmiten client credentials; con el anonymous access completamente desactivado, esas peticiones reciben `401`, el kubelet considera el contenedor no sano y puede reiniciar kube-apiserver en bucle, lo que rompe no solo esta tarea, sino también la posterior tarea 9. El camino correcto es un `AuthenticationConfiguration` con `anonymous.enabled: true` y `anonymous.conditions` que limiten el anonymous access únicamente a las rutas de health necesarias:
 
 ```yaml
 # /etc/kubernetes/authentication-config.yaml

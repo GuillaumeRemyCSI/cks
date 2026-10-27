@@ -52,7 +52,7 @@ The environment is deployed by Terragrunt in AWS `eu-central-1`:
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` with public subnets |
 | `ssh-keys` | SSH keys for the worker and the control-plane |
-| `k8s-1` | a single-node kubeadm control-plane: Kubernetes **1.36.0**, containerd, **Calico** |
+| `k8s-1` | a single-node kubeadm control-plane: Kubernetes **1.35.2**, containerd, **Calico** |
 | `worker` | a work machine with `kubectl`; the standard `etcdctl` 3.6.0 is installed on the control-plane (`ssh control-plane`), as in the exam |
 
 The control-plane deliberately accepts regular Pods - a separate Kubernetes worker is not created.

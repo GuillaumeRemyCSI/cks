@@ -28,7 +28,7 @@ kubectl get nodes
 ```
 Switched to context "cluster1-admin@cluster1".
 NAME              STATUS   ROLES           AGE   VERSION
-ip-10-114-1-xxx   Ready    control-plane   10m   v1.36.0
+ip-10-114-1-xxx   Ready    control-plane   10m   v1.35.2
 ```
 
 ## 2. Client certificate extraction

@@ -42,7 +42,7 @@ PSS `restricted` 定義的是固定的、標準化的 security 欄位集合(non-
 |---|---|
 | `vpc` | VPC `10.10.0.0/16`，含公有子網路 |
 | `ssh-keys` | 用於存取機器的 SSH 金鑰 |
-| `k8s-1` | 單節點 kubeadm 叢集 Kubernetes `1.36.0`、containerd 與 **Calico** |
+| `k8s-1` | 單節點 kubeadm 叢集 Kubernetes `1.35.2`、containerd 與 **Calico** |
 | `worker` | 具備 `kubectl`、context `cluster1-admin@cluster1` 與 `check_result` 的工作機 |
 
 Control-plane 接受一般的 Pod，因此不需要單獨的 Kubernetes worker 節點。
@@ -67,13 +67,13 @@ check_result
 ---
 | **1** | **以固定版本 enforce restricted** |
 | :---: | :--- |
-| 要做什麼 | 在 namespace `psa-restricted-107` 上設定 `pod-security.kubernetes.io/enforce=restricted` 與 `pod-security.kubernetes.io/enforce-version=v1.36`。確認 PSA 確實會拒絕不安全的 Pod：在這個 namespace 中，對帶有 `hostNetwork: true` 的 Pod 做 server-side dry-run，必須以包含 `violates PodSecurity` 的錯誤結束。不要更改系統 namespace 的 labels。 |
+| 要做什麼 | 在 namespace `psa-restricted-107` 上設定 `pod-security.kubernetes.io/enforce=restricted` 與 `pod-security.kubernetes.io/enforce-version=v1.35`。確認 PSA 確實會拒絕不安全的 Pod：在這個 namespace 中，對帶有 `hostNetwork: true` 的 Pod 做 server-side dry-run，必須以包含 `violates PodSecurity` 的錯誤結束。不要更改系統 namespace 的 labels。 |
 | 驗收標準 | 兩個 enforce-label 的值精確；不安全的 Pod 在 `psa-restricted-107` 中無法通過 admission；系統 namespace `kube-system`、`kube-public` 與 `kube-node-lease` 在本實驗範圍內不會取得 `pod-security.kubernetes.io/*` labels。 |
 
 <details>
 <summary>💡 任務 1 的提示</summary>
 
-`kubectl label namespace psa-restricted-107 pod-security.kubernetes.io/enforce=restricted pod-security.kubernetes.io/enforce-version=v1.36` - 兩個 label 會立即生效，PSA 不需要重新啟動任何東西。請透過帶有 `hostNetwork: true` 的 `kubectl apply --dry-run=server` 自行檢查 - 必須是 `--dry-run=server`(而不是 `client`)，因為包括 PSA 在內的 admission controllers 只在 server-side 運作。
+`kubectl label namespace psa-restricted-107 pod-security.kubernetes.io/enforce=restricted pod-security.kubernetes.io/enforce-version=v1.35` - 兩個 label 會立即生效，PSA 不需要重新啟動任何東西。請透過帶有 `hostNetwork: true` 的 `kubectl apply --dry-run=server` 自行檢查 - 必須是 `--dry-run=server`(而不是 `client`)，因為包括 PSA 在內的 admission controllers 只在 server-side 運作。
 </details>
 
 <details>
@@ -105,7 +105,7 @@ echo "baseline exit: $?"
 ```bash
 kubectl label namespace psa-restricted-107 \
   pod-security.kubernetes.io/enforce=restricted \
-  pod-security.kubernetes.io/enforce-version=v1.36
+  pod-security.kubernetes.io/enforce-version=v1.35
 
 kubectl apply --dry-run=server -f - <<'EOF'
 apiVersion: v1
@@ -133,14 +133,14 @@ echo "after-label exit: $?"
 <details>
 <summary>💡 任務 2 的提示</summary>
 
-如果 Pod 收到 admission rejection - 請仔細閱讀錯誤訊息，它通常會指出「確切」缺少的欄位(例如 "container has no capabilities.drop")。關於 Kubernetes 1.36 中 PSS `restricted` 語意的一個重要細節：它要求實際生效的(不一定要逐字重複設定的)、允許的 `seccompProfile` - pod-level 的 profile(`spec.securityContext.seccompProfile.type`)可以被沒有設定自己欄位的容器繼承，反過來，如果 container-level 的欄位在「所有」容器上都明確設定，即使沒有 pod-level 的 profile 也足夠。也就是說，PSS 本身並不要求字面上同時有「兩個」層級。**在這個實驗中，我們刻意要求在 Pod 與容器上都明確設定 `RuntimeDefault`** - 不是因為 PSS 要求這樣，而是為了讓你練習兩個層級的設定。同樣地，`runAsUser: 1000` 是這個實驗自己明確的 hardening 決定：PSS `restricted` 禁止 UID `0`，但並不要求具體是 `1000`(任何非零值或完全不設定這個欄位，對 PSS 本身都是允許的)。
+如果 Pod 收到 admission rejection - 請仔細閱讀錯誤訊息，它通常會指出「確切」缺少的欄位(例如 "container has no capabilities.drop")。關於 Kubernetes 1.35 中 PSS `restricted` 語意的一個重要細節：它要求實際生效的(不一定要逐字重複設定的)、允許的 `seccompProfile` - pod-level 的 profile(`spec.securityContext.seccompProfile.type`)可以被沒有設定自己欄位的容器繼承，反過來，如果 container-level 的欄位在「所有」容器上都明確設定，即使沒有 pod-level 的 profile 也足夠。也就是說，PSS 本身並不要求字面上同時有「兩個」層級。**在這個實驗中，我們刻意要求在 Pod 與容器上都明確設定 `RuntimeDefault`** - 不是因為 PSS 要求這樣，而是為了讓你練習兩個層級的設定。同樣地，`runAsUser: 1000` 是這個實驗自己明確的 hardening 決定：PSS `restricted` 禁止 UID `0`，但並不要求具體是 `1000`(任何非零值或完全不設定這個欄位，對 PSS 本身都是允許的)。
 </details>
 
 ---
 | **3** | **baseline 的觀察模式** |
 | :---: | :--- |
-| 要做什麼 | 在 namespace `psa-observe-107` 上啟用 PSA 的兩個模式：`pod-security.kubernetes.io/audit=baseline`、`pod-security.kubernetes.io/audit-version=v1.36`、`pod-security.kubernetes.io/warn=baseline`、`pod-security.kubernetes.io/warn-version=v1.36`。不要加入 `enforce`：這是用於在阻擋之前分階段觀察的 namespace。 |
-| 驗收標準 | 有四個 audit/warn labels，等級為 `baseline`，版本為 `v1.36`；沒有 enforce-label。 |
+| 要做什麼 | 在 namespace `psa-observe-107` 上啟用 PSA 的兩個模式：`pod-security.kubernetes.io/audit=baseline`、`pod-security.kubernetes.io/audit-version=v1.35`、`pod-security.kubernetes.io/warn=baseline`、`pod-security.kubernetes.io/warn-version=v1.35`。不要加入 `enforce`：這是用於在阻擋之前分階段觀察的 namespace。 |
+| 驗收標準 | 有四個 audit/warn labels，等級為 `baseline`，版本為 `v1.35`；沒有 enforce-label。 |
 
 <details>
 <summary>💡 任務 3 的提示</summary>
@@ -171,15 +171,15 @@ EOF
 ```
 
 設定全部四個 label，然後重複「同一個」manifest - 現在 `kubectl apply`
-必須輸出 `Warning: ... would violate PodSecurity "baseline:v1.36"`，而指令
+必須輸出 `Warning: ... would violate PodSecurity "baseline:v1.35"`，而指令
 仍然必須成功結束(exit 0)，而不是以錯誤結束：
 
 ```bash
 kubectl label namespace psa-observe-107 \
   pod-security.kubernetes.io/audit=baseline \
-  pod-security.kubernetes.io/audit-version=v1.36 \
+  pod-security.kubernetes.io/audit-version=v1.35 \
   pod-security.kubernetes.io/warn=baseline \
-  pod-security.kubernetes.io/warn-version=v1.36
+  pod-security.kubernetes.io/warn-version=v1.35
 
 kubectl apply --dry-run=server -f - <<'EOF'
 apiVersion: v1
@@ -207,7 +207,7 @@ echo "exit code: $?"
 <details>
 <summary>💡 任務 4 的提示</summary>
 
-如果 Pod「沒有」建立 - 請檢查你是否在任務 3 中不小心設定了 `enforce` label，而不是只有 `audit`/`warn`。PSA 的 warning 會直接出現在 `kubectl apply` 的輸出中(`Warning: would violate PodSecurity "baseline:v1.36"`)，不需要到單獨的 log 中尋找。
+如果 Pod「沒有」建立 - 請檢查你是否在任務 3 中不小心設定了 `enforce` label，而不是只有 `audit`/`warn`。PSA 的 warning 會直接出現在 `kubectl apply` 的輸出中(`Warning: would violate PodSecurity "baseline:v1.35"`)，不需要到單獨的 log 中尋找。
 </details>
 
 <details>
@@ -428,8 +428,8 @@ echo "exit code in psa-observe-107: $?"
 
 | **7** | **Controller-driven admission denial：透過 ReplicaSet events 診斷** |
 | :---: | :--- |
-| 要做什麼 | 在空的 namespace `psa-controller-107` 中建立 Deployment `controller-app`(label `app=controller-app`,replicas=1)，使用沒有 hardening 的簡單 Pod template(例如 `busybox:1.36`、`sleep 3600`，沒有 `securityContext`)- 它必須成功啟動，PSA 目前還不會妨礙。然後在這個 namespace 上啟用 `pod-security.kubernetes.io/enforce=restricted` 與 `enforce-version=v1.36`(已經存在的 Pod 會繼續運作 - PSA 不會動已經建立的物件)。刪除目前的 Pod:ReplicaSet 會嘗試建立替代的 Pod，而這次 admission 會拒絕它。透過 `kubectl -n psa-controller-107 describe rs` 與 `kubectl -n psa-controller-107 get events` 檢查原因 - 那裡會有 `FailedCreate`，文字為 `violates PodSecurity "restricted:v1.36"`。修正 Deployment 的 Pod template(加入與任務 2 相同的 hardening 欄位：non-root、`seccompProfile: RuntimeDefault`、`capabilities.drop: [ALL]`、`allowPrivilegeEscalation: false`)，並等待 ReplicaSet 成功建立新的、能通過的 Pod。 |
-| 驗收標準 | Namespace 強制執行 `restricted:v1.36`;Deployment 中的 Pod template 完全符合 PSS `restricted`；刪除目前的 Pod 之後，ReplicaSet 確實會在目前的 enforce 模式下建立新的 Ready Pod(不只是「物件存在」- 而是透過即時刪除與重新建立來檢查)。 |
+| 要做什麼 | 在空的 namespace `psa-controller-107` 中建立 Deployment `controller-app`(label `app=controller-app`,replicas=1)，使用沒有 hardening 的簡單 Pod template(例如 `busybox:1.36`、`sleep 3600`，沒有 `securityContext`)- 它必須成功啟動，PSA 目前還不會妨礙。然後在這個 namespace 上啟用 `pod-security.kubernetes.io/enforce=restricted` 與 `enforce-version=v1.35`(已經存在的 Pod 會繼續運作 - PSA 不會動已經建立的物件)。刪除目前的 Pod:ReplicaSet 會嘗試建立替代的 Pod，而這次 admission 會拒絕它。透過 `kubectl -n psa-controller-107 describe rs` 與 `kubectl -n psa-controller-107 get events` 檢查原因 - 那裡會有 `FailedCreate`，文字為 `violates PodSecurity "restricted:v1.35"`。修正 Deployment 的 Pod template(加入與任務 2 相同的 hardening 欄位：non-root、`seccompProfile: RuntimeDefault`、`capabilities.drop: [ALL]`、`allowPrivilegeEscalation: false`)，並等待 ReplicaSet 成功建立新的、能通過的 Pod。 |
+| 驗收標準 | Namespace 強制執行 `restricted:v1.35`;Deployment 中的 Pod template 完全符合 PSS `restricted`；刪除目前的 Pod 之後，ReplicaSet 確實會在目前的 enforce 模式下建立新的 Ready Pod(不只是「物件存在」- 而是透過即時刪除與重新建立來檢查)。 |
 
 <details>
 <summary>💡 任務 7 的提示</summary>
@@ -471,8 +471,8 @@ TASK=107 make delete_cks_task
 
 ## 關於 PSA 版本與 audit 可觀測性的說明
 
-本實驗刻意把 PSA labels 固定在 `v1.36`，因為學習用的叢集本身執行的是
-Kubernetes 1.36.0。截至 2026-09-06，官方 CKS blueprint 以 Kubernetes
+本實驗刻意把 PSA labels 固定在 `v1.35`，因為學習用的叢集本身執行的是
+Kubernetes 1.35.2。截至 2026-09-06，官方 CKS blueprint 以 Kubernetes
 `v1.35` 為準；因此這是 **forward-looking** 的學習設定，而不是對考試版本的聲明。
 要準備目前的考試，請把 `*-version` 後綴換成 `v1.35`，並對照該版本文件
 核對行為。

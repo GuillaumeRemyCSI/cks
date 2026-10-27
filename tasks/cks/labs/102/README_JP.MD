@@ -76,7 +76,7 @@ flowchart LR
 | ----- | ----- |
 | `vpc`            | 2 つのパブリックサブネットを持つ専用の VPC `10.102.0.0/16` |
 | `ssh-keys`       | 仮想マシンへアクセスするためのキー |
-| `k8s-1`          | シングルノードの kubeadm クラスター Kubernetes `1.36.0`、containerd、kube-proxy replacement を有効にした Cilium |
+| `k8s-1`          | シングルノードの kubeadm クラスター Kubernetes `1.35.2`、containerd、kube-proxy replacement を有効にした Cilium |
 | `worker`         | `kubectl`、Cilium CLI、Hubble CLI、`check_result` を備えた作業マシン |
 | Hubble Relay       | 初期化用の `worker.sh` によって有効化される；CLI にはローカルの `cilium hubble port-forward` が必要 |
 

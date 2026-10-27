@@ -68,7 +68,7 @@ Wildcard `*` в `resources`/`verbs` напрямую расширяет **спи
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` с публичными подсетями |
 | `ssh-keys` | ключи для доступа к нодам |
-| `k8s-1` | одноузловой kubeadm-кластер Kubernetes `1.36.0`, containerd и **Calico** |
+| `k8s-1` | одноузловой kubeadm-кластер Kubernetes `1.35.2`, containerd и **Calico** |
 | `worker` | рабочая машина с настроенным `kubectl` и `check_result` |
 
 Control-plane разрешает запуск обычных Pod, поэтому отдельный worker-узел не нужен.
@@ -149,7 +149,7 @@ check_result
 
 Не редактируйте объект Pod через `kubectl edit pod` - kubelet следит за файлом манифеста и перезапишет любое изменение, сделанное через API, обратно в исходное состояние. Редактируйте именно файл `/etc/kubernetes/manifests/kube-apiserver.yaml` на диске ноды. После сохранения подождите: kubelet обнаруживает изменение файла не мгновенно, и API server будет недоступен несколько секунд во время перезапуска static Pod - не паникуйте, если `curl` сразу после сохранения файла ничего не возвращает.
 
-Простое `--anonymous-auth=false` здесь **не подходит**: kubeadm `release-1.36` генерирует kube-apiserver static Pod с HTTPS liveness/readiness/startup probes именно на `/livez` и `/readyz`, а kubelet HTTP probes не передают client credentials - при полном отключении anonymous access эти запросы получают `401`, kubelet считает контейнер нездоровым и может перезапускать kube-apiserver в цикле, что ломает не только это задание, но и последующее задание 9. Правильный путь - `AuthenticationConfiguration` с `anonymous.enabled: true` и `anonymous.conditions`, ограничивающими anonymous access только нужными health-путями:
+Простое `--anonymous-auth=false` здесь **не подходит**: kubeadm `release-1.35` генерирует kube-apiserver static Pod с HTTPS liveness/readiness/startup probes именно на `/livez` и `/readyz`, а kubelet HTTP probes не передают client credentials - при полном отключении anonymous access эти запросы получают `401`, kubelet считает контейнер нездоровым и может перезапускать kube-apiserver в цикле, что ломает не только это задание, но и последующее задание 9. Правильный путь - `AuthenticationConfiguration` с `anonymous.enabled: true` и `anonymous.conditions`, ограничивающими anonymous access только нужными health-путями:
 
 ```yaml
 # /etc/kubernetes/authentication-config.yaml

@@ -11,7 +11,7 @@ CONTROLLER_NS="psa-controller-107"
   echo '' > /var/work/tests/result/requests
 }
 
-@test "1. restricted enforce v1.36 is labeled and rejects an unsafe Pod" {
+@test "1. restricted enforce v1.35 is labeled and rejects an unsafe Pod" {
   echo '1' >> /var/work/tests/result/all
   labels=$(kubectl get namespace "$RESTRICTED_NS" --context "$CTX" -o json 2>/dev/null)
   enforce=$(jq -r '.metadata.labels["pod-security.kubernetes.io/enforce"] // ""' <<<"$labels")
@@ -44,14 +44,14 @@ EOF_POD
 )
   rejection_status=$?
   set -e
-  if [[ "$enforce" == "restricted" && "$version" == "v1.36" && "$rejection_status" -ne 0 && "$rejection" =~ violates[[:space:]]PodSecurity.*restricted && "$system_psa_clean" == "true" ]]; then
+  if [[ "$enforce" == "restricted" && "$version" == "v1.35" && "$rejection_status" -ne 0 && "$rejection" =~ violates[[:space:]]PodSecurity.*restricted && "$system_psa_clean" == "true" ]]; then
     echo '1' >> /var/work/tests/result/ok
     result=0
   else
     if [[ "$enforce" != "restricted" ]]; then
       echo "HINT: Namespace '$RESTRICTED_NS' must have label 'pod-security.kubernetes.io/enforce: restricted'."
-    elif [[ "$version" != "v1.36" ]]; then
-      echo "HINT: Namespace must also pin 'pod-security.kubernetes.io/enforce-version: v1.36' - without a fixed version, the enforced PSS baseline can silently change on a Kubernetes upgrade."
+    elif [[ "$version" != "v1.35" ]]; then
+      echo "HINT: Namespace must also pin 'pod-security.kubernetes.io/enforce-version: v1.35' - without a fixed version, the enforced PSS baseline can silently change on a Kubernetes upgrade."
     elif [[ "$system_psa_clean" != "true" ]]; then
       echo "HINT: Do not apply Pod Security labels to system namespaces in this lab. Remove lab-added pod-security.kubernetes.io/* labels from kube-system, kube-public and kube-node-lease."
     else
@@ -94,8 +94,8 @@ EOF_POD
 
   # Existing Pods are not retroactively rejected when an enforce label is added.
   # Force PodSecurity to re-evaluate every existing Pod in this dedicated namespace
-  # by dry-running a change of enforce-version from v1.36 to "latest". On this lab's
-  # Kubernetes 1.36 API server, latest resolves to the same v1.36 PSS rules; the dry-run
+  # by dry-running a change of enforce-version from v1.35 to "latest". On this lab's
+  # Kubernetes 1.35 API server, latest resolves to the same v1.35 PSS rules; the dry-run
   # changes nothing, but PodSecurity still reports existing violations as warnings.
   set +e
   psa_recheck=$(kubectl label namespace "$RESTRICTED_NS" \
@@ -128,7 +128,7 @@ EOF_POD
     elif [[ "$phase" != "Running" ]]; then
       echo "HINT: Pod spec satisfies the restricted profile but is not Running (phase=$phase). Check 'kubectl describe pod' for a scheduling or image-pull issue unrelated to PSA."
     else
-      echo "HINT: Existing Pods are not retroactively rejected when PSA enforce labels are added. A live server-side dry-run re-evaluation found an existing Pod in '$RESTRICTED_NS' that violates restricted. Fix/recreate 'restricted-app' so its CURRENT spec is actually valid under restricted:v1.36."
+      echo "HINT: Existing Pods are not retroactively rejected when PSA enforce labels are added. A live server-side dry-run re-evaluation found an existing Pod in '$RESTRICTED_NS' that violates restricted. Fix/recreate 'restricted-app' so its CURRENT spec is actually valid under restricted:v1.35."
     fi
     echo "effective_uid_1000=$effective_uid_1000"
     echo "hardened=$hardened phase=$phase psa_recheck_status=$psa_recheck_status psa_recheck_clean=$psa_recheck_clean psa_recheck=$psa_recheck"
@@ -137,7 +137,7 @@ EOF_POD
   [ "$result" -eq 0 ]
 }
 
-@test "3. observe namespace has audit and warn baseline v1.36 without enforce" {
+@test "3. observe namespace has audit and warn baseline v1.35 without enforce" {
   echo '1' >> /var/work/tests/result/all
   labels=$(kubectl get namespace "$OBSERVE_NS" --context "$CTX" -o json 2>/dev/null)
   audit=$(jq -r '.metadata.labels["pod-security.kubernetes.io/audit"] // ""' <<<"$labels")
@@ -145,7 +145,7 @@ EOF_POD
   warn=$(jq -r '.metadata.labels["pod-security.kubernetes.io/warn"] // ""' <<<"$labels")
   warn_version=$(jq -r '.metadata.labels["pod-security.kubernetes.io/warn-version"] // ""' <<<"$labels")
   enforce=$(jq -r '.metadata.labels["pod-security.kubernetes.io/enforce"] // ""' <<<"$labels")
-  if [[ "$audit" == "baseline" && "$audit_version" == "v1.36" && "$warn" == "baseline" && "$warn_version" == "v1.36" && -z "$enforce" ]]; then
+  if [[ "$audit" == "baseline" && "$audit_version" == "v1.35" && "$warn" == "baseline" && "$warn_version" == "v1.35" && -z "$enforce" ]]; then
     echo '1' >> /var/work/tests/result/ok
     result=0
   else
@@ -154,7 +154,7 @@ EOF_POD
     elif [[ "$audit" != "baseline" || "$warn" != "baseline" ]]; then
       echo "HINT: Both 'pod-security.kubernetes.io/audit' and 'pod-security.kubernetes.io/warn' labels must be set to 'baseline' exactly."
     else
-      echo "HINT: Both '-version' labels must be pinned to 'v1.36' exactly, matching the enforce-version convention used elsewhere in this lab."
+      echo "HINT: Both '-version' labels must be pinned to 'v1.35' exactly, matching the enforce-version convention used elsewhere in this lab."
     fi
     echo "audit=$audit audit_version=$audit_version warn=$warn warn_version=$warn_version enforce=$enforce"
     result=1
@@ -733,7 +733,7 @@ EOF_POD
   set -e
 
   if [[ "$enforce" == "restricted" \
-    && "$version" == "v1.36" \
+    && "$version" == "v1.35" \
     && "$hardened" == "true" \
     && -n "$dep_uid" \
     && "$deployment_rs_count" -ge 1 \
@@ -770,7 +770,7 @@ EOF_POD
     elif [[ "$unsafe_status" -eq 0 || ! "$unsafe" =~ violates[[:space:]]PodSecurity ]]; then
       echo "HINT: The namespace no longer proves restricted enforcement: the independent unsafe Pod was not rejected by PodSecurity."
     else
-      echo "HINT: $CONTROLLER_NS must enforce restricted:v1.36 and controller-app's CURRENT Pod template must be PSS-restricted-compliant so its own ReplicaSet can recreate a Ready Pod after deletion."
+      echo "HINT: $CONTROLLER_NS must enforce restricted:v1.35 and controller-app's CURRENT Pod template must be PSS-restricted-compliant so its own ReplicaSet can recreate a Ready Pod after deletion."
     fi
     echo "dep_uid=$dep_uid deployment_rs_uids=$deployment_rs_uids deployment_rs_count=$deployment_rs_count rollout_current=$rollout_current replicas=$replicas template_app_label=$template_app_label old_count=$old_count old_name=$old_name old_uid=$old_uid old_ready=$old_ready delete_status=$delete_status delete_output=$delete_output recreated=$recreated new_uid=$new_uid enforce=$enforce version=$version hardened=$hardened unsafe_status=$unsafe_status unsafe=$unsafe"
     result=1

@@ -19,9 +19,9 @@
 ## 開始前のセルフチェック
 
 <details>
-<summary>1. Kubernetes 1.36 で kube-bench をプロファイル `cis-1.12` で実行しても、authoritative な CIS compliance とは呼べないのはなぜか？</summary>
+<summary>1. Kubernetes 1.35 で kube-bench をプロファイル `cis-1.12` で実行しても、authoritative な CIS compliance とは呼べないのはなぜか？</summary>
 
-この実習で固定されている `kube-bench 0.16.0` には、1.36 用のプロファイルがそもそも含まれていません - 組み込みの version mapping は `"1.34": "cis-1.12"` (利用可能な最新のプロファイル) までしかありません。クラスター 1.36 で明示的に `--benchmark cis-1.12` を指定することで、最も近い既存のプロファイルを approximation として強制的に使用することになります。一部のチェックは新しいバージョンには関係がない可能性があり、1.36 固有の新しい security-relevant なパラメータは、このプロファイルではまだカバーされていません。これは実用上価値のあるシグナルですが、バージョン 1.36 に対する formal compliance statement ではありません。
+この実習で固定されている `kube-bench 0.16.0` には、1.35 用のプロファイルがそもそも含まれていません - 組み込みの version mapping は `"1.34": "cis-1.12"` (利用可能な最新のプロファイル) までしかありません。クラスター 1.35 で明示的に `--benchmark cis-1.12` を指定することで、最も近い既存のプロファイルを approximation として強制的に使用することになります。一部のチェックは新しいバージョンには関係がない可能性があり、1.35 固有の新しい security-relevant なパラメータは、このプロファイルではまだカバーされていません。これは実用上価値のあるシグナルですが、バージョン 1.35 に対する formal compliance statement ではありません。
 </details>
 
 <details>
@@ -71,10 +71,10 @@ flowchart TB
 |---|---|
 | `vpc` | パブリックサブネットを持つ VPC `10.103.0.0/16` |
 | `ssh-keys` | ノードへアクセスするための SSH キー |
-| `k8s-1` | Kubernetes `1.36.0` (kubeadm)、containerd と Calico：control-plane + worker ノード 1 台 |
+| `k8s-1` | Kubernetes `1.35.2` (kubeadm)、containerd と Calico：control-plane + worker ノード 1 台 |
 | `worker` | `kubectl`、SSH アクセス、`check_result` を備えた作業マシン (bastion) (`kube-bench` 自体はここでは不要です - すでに `control-plane` 上にあり、worker ノードには実習の途中でインストールします) |
 
-> **バージョンと試験。** 2026-09-06 時点で、公式の CKS exam は Kubernetes `v1.35` を前提としています。この実習は `1.36.0` を使用するため、このバージョンに関することはすべて forward-looking な学習シナリオであり、現在の試験バージョンについての主張ではありません。
+> **バージョンと試験。** 2026-09-06 時点で、公式の CKS exam は Kubernetes `v1.35` を前提としています。この実習は `1.35.2` を使用するため、このバージョンに関することはすべて forward-looking な学習シナリオであり、現在の試験バージョンについての主張ではありません。
 
 control-plane は taint が解除されているため、必要に応じて学習用の Pod を実行できます。
 課題 3、5、9 では、static Pods は、変更された manifest を保存した後に kubelet によって自動的に再作成されます。課題 2 と 10 では、`KubeletConfiguration` を編集した後に kubelet を手動で再起動する必要があります (`systemctl restart kubelet`)。
@@ -107,13 +107,13 @@ ssh control-plane hostname
 
 | **1** | **CIS Benchmark レポート** |
 | :---: | :--- |
-| やること | `control-plane` ノード上で、Kubernetes `1.36.0` に対して `kube-bench` を実行します。完全な evidence を `/var/work/tests/artifacts/1/kube-bench.txt` に保存します：`kubernetes_version`、`kube_bench_version`、選択した `benchmark`、`mapping_status`、続いてレポート本体。`kube-bench` は `control-plane` にすでにインストールされています (CIS Benchmark のツールがノード上にすでにある実際の試験と同様に) - インストールやコピーは不要で、チェックされるべきなのはまさにそのノードです。固定された `kube-bench 0.16.0` に組み込まれた version mapping は、エントリ `"1.34": "cis-1.12"` で終わっています - このバージョンには、それより新しいプロファイル (1.35/1.36 向けのプロファイルも含めて) はまったくありません。そのため、`--benchmark cis-1.12` を明示的に指定して実行し、`1.36` での結果を、authoritative compliance ではなく `forced-approximate` と明記してください。**`cis-1.12` の targets を完全なセットで実行してください：** `--targets master,node,controlplane,etcd,policies` - これは kube-bench がプロファイル `cis-1.12` に対応付ける targets のマップです；いずれかを省略すると不完全なレポートになります。`--targets` を明示しない場合、kube-bench は現在のノードの種類を自分で判定し、そのリスト全体ではなくより狭いセットを使います - `etcd` と `policies` はそのような auto-detected な実行には含まれないため、`--targets` を明示しないレポートは不完全になります。 |
-| 受け入れ基準 | - evidence に 4 つの version/mapping フィールドがすべて含まれている；<br/>- `mapping_status=forced-approximate` が、`1.36` の公式カバレッジがないことを明示的に説明している；<br/>- レポートに、セクション `master`、`node`、`controlplane`、`etcd`、`policies` すべての結果がある (任意の `[PASS]`/`[WARN]`/`[FAIL]` の行だけではない)；<br/>- テキストが、その結果を Kubernetes `1.36` の authoritative CIS compliance として示していない。 |
+| やること | `control-plane` ノード上で、Kubernetes `1.35.2` に対して `kube-bench` を実行します。完全な evidence を `/var/work/tests/artifacts/1/kube-bench.txt` に保存します：`kubernetes_version`、`kube_bench_version`、選択した `benchmark`、`mapping_status`、続いてレポート本体。`kube-bench` は `control-plane` にすでにインストールされています (CIS Benchmark のツールがノード上にすでにある実際の試験と同様に) - インストールやコピーは不要で、チェックされるべきなのはまさにそのノードです。固定された `kube-bench 0.16.0` に組み込まれた version mapping は、エントリ `"1.34": "cis-1.12"` で終わっています - このバージョンには、それより新しいプロファイル (1.35 向けのプロファイルも含めて) はまったくありません。そのため、`--benchmark cis-1.12` を明示的に指定して実行し、`1.35` での結果を、authoritative compliance ではなく `forced-approximate` と明記してください。**`cis-1.12` の targets を完全なセットで実行してください：** `--targets master,node,controlplane,etcd,policies` - これは kube-bench がプロファイル `cis-1.12` に対応付ける targets のマップです；いずれかを省略すると不完全なレポートになります。`--targets` を明示しない場合、kube-bench は現在のノードの種類を自分で判定し、そのリスト全体ではなくより狭いセットを使います - `etcd` と `policies` はそのような auto-detected な実行には含まれないため、`--targets` を明示しないレポートは不完全になります。 |
+| 受け入れ基準 | - evidence に 4 つの version/mapping フィールドがすべて含まれている；<br/>- `mapping_status=forced-approximate` が、`1.35` の公式カバレッジがないことを明示的に説明している；<br/>- レポートに、セクション `master`、`node`、`controlplane`、`etcd`、`policies` すべての結果がある (任意の `[PASS]`/`[WARN]`/`[FAIL]` の行だけではない)；<br/>- テキストが、その結果を Kubernetes `1.35` の authoritative CIS compliance として示していない。 |
 
 <details>
 <summary>💡 課題 1 のヒント</summary>
 
-チェックは、ファイルの先頭に 4 つの具体的なマーカー行を期待します：`kubernetes_version=v1.36.x`、`kube_bench_version=v0.16.0`、`benchmark=cis-1.12`、`mapping_status=forced-approximate` - これは飾りのテキストではなく、テストがそのまま探す形式です。`kube-bench` は worker からリモートでではなく、control-plane node 自体で実行してください - kube-bench には「SSH 経由で他のノードをチェックする」モードはありません。`--targets master,node,controlplane,etcd,policies` を忘れないでください - targets を明示しないと、セクション `etcd` と `policies` がスキップされることがあります。`kube-bench` は標準のディレクトリ `/etc/kube-bench/cfg` に設定とともにすでにインストールされているため、この実習では `--config-dir` を指定する必要はありません - このフラグは、自分で `cfg` を別のディレクトリに置き、そのコピーへの実際のパスを渡す場合にのみ使用してください。
+チェックは、ファイルの先頭に 4 つの具体的なマーカー行を期待します：`kubernetes_version=v1.35.x`、`kube_bench_version=v0.16.0`、`benchmark=cis-1.12`、`mapping_status=forced-approximate` - これは飾りのテキストではなく、テストがそのまま探す形式です。`kube-bench` は worker からリモートでではなく、control-plane node 自体で実行してください - kube-bench には「SSH 経由で他のノードをチェックする」モードはありません。`--targets master,node,controlplane,etcd,policies` を忘れないでください - targets を明示しないと、セクション `etcd` と `policies` がスキップされることがあります。`kube-bench` は標準のディレクトリ `/etc/kube-bench/cfg` に設定とともにすでにインストールされているため、この実習では `--config-dir` を指定する必要はありません - このフラグは、自分で `cfg` を別のディレクトリに置き、そのコピーへの実際のパスを渡す場合にのみ使用してください。
 </details>
 
 ---
@@ -199,13 +199,13 @@ etcd のフラグは `--cipher-suites` という名前です (先頭に `tls-` �
 
 | **6** | **kubelet と kubectl の完全性の確認** |
 | :---: | :--- |
-| やること | control-plane にインストールされている `kubelet` と、worker にインストールされている `kubectl` の SHA-256 を、公開されている Kubernetes `v1.36.0` の checksum と照合します。コマンドと `sha256sum -c` の結果を `/var/work/tests/artifacts/6/binaries.sha256.txt` に保存します。検証対象のファイルから計算したハッシュを基準として使用しないでください。 |
-| 受け入れ基準 | - 成果物が存在する；<br/>- `kubelet` と `kubectl` それぞれの成功した結果 (`OK`) が個別に含まれている；<br/>- 基準となるチェックサムが公式の release `v1.36.0` から取得されている。 |
+| やること | control-plane にインストールされている `kubelet` と、worker にインストールされている `kubectl` の SHA-256 を、公開されている Kubernetes `v1.35.2` の checksum と照合します。コマンドと `sha256sum -c` の結果を `/var/work/tests/artifacts/6/binaries.sha256.txt` に保存します。検証対象のファイルから計算したハッシュを基準として使用しないでください。 |
+| 受け入れ基準 | - 成果物が存在する；<br/>- `kubelet` と `kubectl` それぞれの成功した結果 (`OK`) が個別に含まれている；<br/>- 基準となるチェックサムが公式の release `v1.35.2` から取得されている。 |
 
 <details>
 <summary>💡 課題 6 のヒント</summary>
 
-`https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/` (または対応するプラットフォーム) から公式ファイル `kubelet.sha256`/`kubectl.sha256` をダウンロードし、そのファイルを使って、実際にインストールされているバイナリに対して `sha256sum -c` を実行してください - 成果物に必要なのは、ハッシュそのものではなく、このコマンドの出力 (`kubelet: OK`、`kubectl: OK`) です。
+`https://dl.k8s.io/release/v1.35.2/bin/linux/amd64/` (または対応するプラットフォーム) から公式ファイル `kubelet.sha256`/`kubectl.sha256` をダウンロードし、そのファイルを使って、実際にインストールされているバイナリに対して `sha256sum -c` を実行してください - 成果物に必要なのは、ハッシュそのものではなく、このコマンドの出力 (`kubelet: OK`、`kubectl: OK`) です。
 </details>
 
 ---

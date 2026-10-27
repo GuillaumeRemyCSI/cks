@@ -41,7 +41,7 @@ Audit log が記録するのは API server への request レベルのイベン�
 
 | コンポーネント | 用途 |
 |---|---|
-| `k8s-1` | シングルノードの Kubernetes `1.36.0`、containerd、Calico；ノード名 `control-plane` |
+| `k8s-1` | シングルノードの Kubernetes `1.35.2`、containerd、Calico；ノード名 `control-plane` |
 | `worker` | `kubectl`、`check_result`、SSH アクセス `ssh control-plane` を備えた作業マシン |
 | `runtime-112` | 用意された namespace；すでに Secret `audit-secret` がある |
 

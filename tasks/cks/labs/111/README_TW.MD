@@ -84,7 +84,7 @@ SBOM 解決的是盤點「元件」與套件版本的問題(安裝了什麼，�
 |---|---|
 | `vpc` | VPC `10.111.0.0/16`，含公有子網路 |
 | `ssh-keys` | 存取節點 |
-| `k8s-1` | 單節點 kubeadm Kubernetes `1.36.0`、containerd 與 **Calico** |
+| `k8s-1` | 單節點 kubeadm Kubernetes `1.35.2`、containerd 與 **Calico** |
 | `worker` | 用於分析的工作站、`kubectl`、`check_result` 與 security tools |
 
 這是 CKA 風格的基礎架構：唯一的 control-plane 節點允許 workload，並
@@ -108,7 +108,7 @@ worker 上事先備妥了恰好這些固定的版本：
 Helm 與 `install-kyverno` 在 worker 上同樣可用，但 Kyverno 刻意**沒有安裝**:
 安裝它是任務 9 的一部分，就像實驗 108 中一樣。`install-kyverno` 固定了 Kyverno
 `1.19`/chart `3.9.0`；該版本上游官方的 support matrix 是 Kubernetes
-`1.33-1.35`，而這個叢集是 `1.36`。這是刻意設置、超出
+`1.33-1.35`，而這個叢集是 `1.35`。這是刻意設置、超出
 已測試範圍的 lab-specific 例外(與實驗 108 中的先例類似)，而不是有保證的
 官方支援 - 升級 Kyverno 時請取消這個例外。
 

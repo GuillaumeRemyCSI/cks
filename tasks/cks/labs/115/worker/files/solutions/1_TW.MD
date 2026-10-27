@@ -15,7 +15,7 @@ kubectl get nodes
 ```
 Error from server (NotFound): daemonsets.apps "kube-proxy" not found
 NAME              STATUS     ROLES           AGE   VERSION
-ip-10-115-1-xxx   NotReady   control-plane   2m    v1.36.0
+ip-10-115-1-xxx   NotReady   control-plane   2m    v1.35.2
 ```
 
 ## 2. Cilium 作為 kube-proxy 的替代品
@@ -37,7 +37,7 @@ kubectl get nodes
 ```
 KubeProxyReplacement:   True   [ens5 10.115.1.x (Direct Routing)]
 NAME              STATUS   ROLES           AGE   VERSION
-ip-10-115-1-xxx   Ready    control-plane   4m    v1.36.0
+ip-10-115-1-xxx   Ready    control-plane   4m    v1.35.2
 ```
 
 ```bash

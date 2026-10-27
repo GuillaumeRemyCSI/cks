@@ -56,7 +56,7 @@ Kubelet は、相対パスを自身の seccomp root (デフォルトは `/var/li
 |---|---|
 | `vpc` | パブリックサブネットを持つ VPC `10.10.0.0/16` |
 | `ssh-keys` | ノードへアクセスするためのキー |
-| `k8s-1` | シングルノードの kubeadm クラスター Kubernetes `1.36.0`、containerd、**Calico** |
+| `k8s-1` | シングルノードの kubeadm クラスター Kubernetes `1.35.2`、containerd、**Calico** |
 | `worker` | `kubectl`、`check_result`、`control-plane` としてのノードへの SSH アクセスを備えた作業マシン |
 
 リソースの節約のため、control-plane が唯一の workload ノードです：その `NoSchedule` taint は
@@ -205,7 +205,7 @@ file capabilities) **新しい**権限を得ることを禁止しますが、bou
 ---
 | **7** | **User namespaces: `hostUsers: false` と `uid_map` による UID の変換** |
 | :---: | :--- |
-| やること | User namespaces は Kubernetes v1.36 で GA になりました ([第 03 章](../../course/03/jp.md)、[第 18 章](../../course/18/jp.md) と Security Delta v1.36 を参照)。理論では、`hostUsers: false` がコンテナの root を非特権のホスト UID に変換すると説明されています；ここでは、それを実際のプロセスで実証する必要があります。`security-106` に、準備されたノード上で `spec.hostUsers: false`、イメージ `busybox:1.36`、コマンド `sleep 3600` の Pod `userns-probe` を作成します；Pod レベルの `runAsUser` は指定せず、プロセスがコンテナの**内部で** UID 0 として起動するようにします。コンテナ内の `id` (`uid=0`) を確認します。`crictl inspect` (実習 112 と同様) または `kubectl get pod -o jsonpath` + `crictl ps` で、コンテナのプロセスのホスト PID を特定し、その後ノード上で `/proc/<host PID>/uid_map` を読み取ります。両方の出力 (コンテナ内の `id` と `uid_map` の内容) を `/var/work/tests/artifacts/6/userns.txt` に保存します。 |
+| やること | User namespaces は Kubernetes v1.35 で GA になりました ([第 03 章](../../course/03/jp.md)、[第 18 章](../../course/18/jp.md) と Security Delta v1.35 を参照)。理論では、`hostUsers: false` がコンテナの root を非特権のホスト UID に変換すると説明されています；ここでは、それを実際のプロセスで実証する必要があります。`security-106` に、準備されたノード上で `spec.hostUsers: false`、イメージ `busybox:1.36`、コマンド `sleep 3600` の Pod `userns-probe` を作成します；Pod レベルの `runAsUser` は指定せず、プロセスがコンテナの**内部で** UID 0 として起動するようにします。コンテナ内の `id` (`uid=0`) を確認します。`crictl inspect` (実習 112 と同様) または `kubectl get pod -o jsonpath` + `crictl ps` で、コンテナのプロセスのホスト PID を特定し、その後ノード上で `/proc/<host PID>/uid_map` を読み取ります。両方の出力 (コンテナ内の `id` と `uid_map` の内容) を `/var/work/tests/artifacts/6/userns.txt` に保存します。 |
 | 受け入れ基準 | Pod が `Running` で、`spec.hostUsers == false`、準備されたノードを選択している；コンテナ内の `id` が `uid=0(root)` を示す；ノード上の `/proc/<host PID>/uid_map` に `0 <host-uid> <length>` の形式の行が含まれ、`<host-uid>` が **0 ではなく** (コンテナの root が非特権のホスト UID に変換されている)、`<length>` が少なくとも `65536` (標準の per-Pod UID 範囲) である；成果物に evidence の両方の部分が含まれている。 |
 
 <details>

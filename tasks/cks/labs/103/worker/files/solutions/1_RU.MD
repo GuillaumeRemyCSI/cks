@@ -20,9 +20,9 @@ ssh control-plane hostname
 
 `kube-bench` `0.16.0` уже установлен на `control-plane` (как и на реальном экзамене, где
 CIS Benchmark tooling на нодах уже есть) - копировать его туда с worker не нужно. Kubernetes
-`1.36` пока отсутствует в официальной support table kube-bench; встроенный version mapping
+`1.35` пока отсутствует в официальной support table kube-bench; встроенный version mapping
 этой версии заканчивается записью `"1.34": "cis-1.12"` - более новых профилей (включая
-какой-либо профиль под 1.35/1.36) в `0.16.0` нет вовсе, поэтому используем именно `cis-1.12`
+какой-либо профиль под 1.35) в `0.16.0` нет вовсе, поэтому используем именно `cis-1.12`
 как ближайший существующий. Запускаем его принудительно как approximate
 hardening signal, а не как authoritative CIS compliance assessment.
 
@@ -280,13 +280,13 @@ cat /var/work/tests/artifacts/5/tls13.txt
 ## Задание 6. Проверить SHA-256 kubelet и kubectl
 
 Эталон не вычисляется из локальных файлов. Скачайте официальные опубликованные суммы
-Kubernetes `v1.36.0`, сформируйте файлы в формате `sha256sum -c` и сохраните результаты.
+Kubernetes `v1.35.2`, сформируйте файлы в формате `sha256sum -c` и сохраните результаты.
 
 ```bash
 mkdir -p /var/work/tests/artifacts/6 /tmp/cks-103-sha
 cd /tmp/cks-103-sha
-curl -fsSLO https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/kubectl.sha256
-curl -fsSLO https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/kubelet.sha256
+curl -fsSLO https://dl.k8s.io/release/v1.35.2/bin/linux/amd64/kubectl.sha256
+curl -fsSLO https://dl.k8s.io/release/v1.35.2/bin/linux/amd64/kubelet.sha256
 
 printf '%s  %s\n' "$(cat kubectl.sha256)" "$(command -v kubectl)" > kubectl.check
 scp kubelet.sha256 control-plane:/tmp/kubelet.sha256

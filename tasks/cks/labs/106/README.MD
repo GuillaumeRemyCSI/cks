@@ -57,7 +57,7 @@ The environment is deployed via Terragrunt in AWS `eu-central-1`.
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` with public subnets |
 | `ssh-keys` | keys for access to the node |
-| `k8s-1` | a single-node kubeadm Kubernetes `1.36.0` cluster, containerd, and **Calico** |
+| `k8s-1` | a single-node kubeadm Kubernetes `1.35.2` cluster, containerd, and **Calico** |
 | `worker` | a work machine with `kubectl`, `check_result`, and SSH access to the node as `control-plane` |
 
 To save resources the control-plane is the only workload node: its
@@ -209,7 +209,7 @@ For a regular workload use `capabilities.drop: ["ALL"]` and, separately,
 ---
 | **7** | **User namespaces: `hostUsers: false` and UID translation via `uid_map`** |
 | :---: | :--- |
-| What to do | User namespaces are GA in Kubernetes v1.36 (see [chapter 03](../../course/03/README.md), [chapter 18](../../course/18/README.md) and the Security Delta v1.36). The theory explains that `hostUsers: false` translates the root of the container into an unprivileged host UID; here you need to prove this on a live process. Create a Pod `userns-probe` in `security-106` on the prepared node with `spec.hostUsers: false`, the image `busybox:1.36`, and the command `sleep 3600`; do not set the Pod-level `runAsUser`, so that the process starts as UID 0 **inside** the container. Confirm `id` inside the container (`uid=0`). Determine the host PID of the container process via `crictl inspect` (by analogy with lab 112) or via `kubectl get pod -o jsonpath` + `crictl ps`, then on the node read `/proc/<host PID>/uid_map`. Save both outputs (`id` inside the container and the content of `uid_map`) in `/var/work/tests/artifacts/6/userns.txt`. |
+| What to do | User namespaces are GA in Kubernetes v1.35 (see [chapter 03](../../course/03/README.md), [chapter 18](../../course/18/README.md) and the Security Delta v1.35). The theory explains that `hostUsers: false` translates the root of the container into an unprivileged host UID; here you need to prove this on a live process. Create a Pod `userns-probe` in `security-106` on the prepared node with `spec.hostUsers: false`, the image `busybox:1.36`, and the command `sleep 3600`; do not set the Pod-level `runAsUser`, so that the process starts as UID 0 **inside** the container. Confirm `id` inside the container (`uid=0`). Determine the host PID of the container process via `crictl inspect` (by analogy with lab 112) or via `kubectl get pod -o jsonpath` + `crictl ps`, then on the node read `/proc/<host PID>/uid_map`. Save both outputs (`id` inside the container and the content of `uid_map`) in `/var/work/tests/artifacts/6/userns.txt`. |
 | Acceptance criteria | The Pod is `Running`, `spec.hostUsers == false`, it selects the prepared node; `id` inside the container shows `uid=0(root)`; `/proc/<host PID>/uid_map` on the node contains a line of the form `0 <host-uid> <length>`, where `<host-uid>` is **not equal to 0** (the container root is translated into an unprivileged host UID) and `<length>` is at least `65536` (the standard per-Pod UID range); the artifact contains both parts of the evidence. |
 
 <details>

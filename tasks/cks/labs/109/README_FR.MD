@@ -52,7 +52,7 @@ L'environnement est déployé par Terragrunt dans AWS `eu-central-1` :
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` avec des sous-réseaux publics |
 | `ssh-keys` | clés SSH pour le worker et le control-plane |
-| `k8s-1` | control-plane kubeadm mono-nœud : Kubernetes **1.36.0**, containerd, **Calico** |
+| `k8s-1` | control-plane kubeadm mono-nœud : Kubernetes **1.35.2**, containerd, **Calico** |
 | `worker` | machine de travail avec `kubectl` ; sur le control-plane (`ssh control-plane`) est installé l'`etcdctl` 3.6.0 standard, comme à l'examen |
 
 Le control-plane accepte volontairement les Pods ordinaires - aucun worker Kubernetes distinct n'est créé.

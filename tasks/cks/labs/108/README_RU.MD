@@ -42,7 +42,7 @@ policy, а не пишете CEL внутри Kyverno. Работайте тол
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` с публичными подсетями |
 | `ssh-keys` | ключи доступа к узлам |
-| `k8s-1` | одноузловой kubeadm-кластер Kubernetes `1.36.0`, containerd и **Calico** |
+| `k8s-1` | одноузловой kubeadm-кластер Kubernetes `1.35.2`, containerd и **Calico** |
 | `worker` | рабочая машина с `kubectl`, Helm и `/usr/local/bin/install-kyverno` |
 
 Control-plane разрешает обычные Pod, поэтому отдельный Kubernetes worker не создаётся.
@@ -414,9 +414,9 @@ TASK=108 make delete_cks_task
 
 ## Совместимость и точная семантика запрета образов
 
-Лаба фиксирует Kubernetes 1.36.0 и Kyverno 1.19 для знакомства с новыми
+Лаба фиксирует Kubernetes 1.35.2 и Kyverno 1.19 для знакомства с новыми
 `policies.kyverno.io/v1` API. Это **forward-looking / unsupported combination**: Kyverno
-1.19 официально тестируется с Kubernetes 1.33–1.35, а не 1.36. Перед применением вне
+1.19 официально тестируется с Kubernetes 1.33–1.35, а не 1.35. Перед применением вне
 лаборатории выбирайте поддерживаемую матрицу версий и сверяйте release notes.
 
 В задании 2 под «запретом `latest`» понимается также запрет неявного `latest`: `nginx`

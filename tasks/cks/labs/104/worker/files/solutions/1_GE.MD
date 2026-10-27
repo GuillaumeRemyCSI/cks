@@ -167,7 +167,7 @@ k auth can-i get secrets -n security-104 \
 
 ## 5. anonymous-auth-ის გამორთვა
 
-მარტივი `--anonymous-auth=false` აქ არ გამოდგება: kubeadm `release-1.36` აგენერირებს
+მარტივი `--anonymous-auth=false` აქ არ გამოდგება: kubeadm `release-1.35` აგენერირებს
 kube-apiserver static Pod-ს HTTPS liveness/readiness/startup probes-ით `/livez`-სა და
 `/readyz`-ზე, ხოლო kubelet HTTP probes client credentials-ს არ გადასცემენ - anonymous access-ის სრული გამორთვისას
 ეს მოთხოვნები მიიღებენ `401`-ს, და kubelet kube-apiserver-ს არაჯანსაღად მიიჩნევს

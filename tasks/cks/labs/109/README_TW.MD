@@ -50,7 +50,7 @@ etcd 中既有的記錄，在被明確重寫(re-encryption)之前，仍然是以
 |---|---|
 | `vpc` | VPC `10.10.0.0/16`，含公有子網路 |
 | `ssh-keys` | 用於 worker 與 control-plane 的 SSH 金鑰 |
-| `k8s-1` | 單節點 kubeadm control-plane:Kubernetes **1.36.0**、containerd、**Calico** |
+| `k8s-1` | 單節點 kubeadm control-plane:Kubernetes **1.35.2**、containerd、**Calico** |
 | `worker` | 已設定好 `kubectl` 的工作機；control-plane(`ssh control-plane`)上安裝了標準的 `etcdctl` 3.6.0，就像考試中一樣 |
 
 Control-plane 刻意接受一般的 Pod - 不會建立單獨的 Kubernetes worker。

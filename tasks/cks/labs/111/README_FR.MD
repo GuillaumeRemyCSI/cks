@@ -87,7 +87,7 @@ L'environnement est créé par Terragrunt dans AWS `eu-central-1`.
 |---|---|
 | `vpc` | VPC `10.111.0.0/16` avec des sous-réseaux publics |
 | `ssh-keys` | accès au nœud |
-| `k8s-1` | kubeadm mono-nœud avec Kubernetes `1.36.0`, containerd et **Calico** |
+| `k8s-1` | kubeadm mono-nœud avec Kubernetes `1.35.2`, containerd et **Calico** |
 | `worker` | poste de travail pour l'analyse, `kubectl`, `check_result` et security tools |
 
 Infrastructure de style CKA : l'unique nœud control-plane est autorisé pour les workloads et
@@ -111,7 +111,7 @@ Sur le worker sont disponibles à l'avance exactement ces versions figées :
 Helm et `install-kyverno` sont aussi disponibles sur le worker, mais Kyverno n'est volontairement **pas installé** :
 son installation fait partie de la tâche 9, comme dans le lab 108. `install-kyverno` fige Kyverno
 `1.19`/chart `3.9.0` ; la support matrix officielle upstream pour cette version est Kubernetes
-`1.33-1.35`, alors que ce cluster est en `1.36`. C'est une exception lab-specific consciente, hors de la
+`1.33-1.35`, alors que ce cluster est en `1.35`. C'est une exception lab-specific consciente, hors de la
 plage testée (comme le précédent du lab 108), et non un support officiel
 garanti ; lors de la mise à jour de Kyverno, retirez cette exception.
 

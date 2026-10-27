@@ -37,7 +37,7 @@ Une réponse réussie À L'INTÉRIEUR du mesh démontre seulement que la connexi
 
 ## Infrastructure
 
-Terragrunt crée Kubernetes `1.36.0` dans `eu-central-1` :
+Terragrunt crée Kubernetes `1.35.2` dans `eu-central-1` :
 
 | Composant | Rôle |
 |---|---|
@@ -47,8 +47,8 @@ Terragrunt crée Kubernetes `1.36.0` dans `eu-central-1` :
 | `worker` | machine de travail avec `kubectl`, `cilium`, `istioctl`, `check_result` et des SSH aliases vers les nœuds |
 
 Matrice vérifiée le 2026-08-31 (comparez-la avant chaque build) : Kubernetes du lab -
-`1.36.0` ; Cilium data plane - un lab-build pris en charge, dont la compatibilité avec
-Kubernetes `1.36` doit être confirmée d'après la requirements matrix à jour ; Cilium CLI `0.19.7`
+`1.35.2` ; Cilium data plane - un lab-build pris en charge, dont la compatibilité avec
+Kubernetes `1.35` doit être confirmée d'après la requirements matrix à jour ; Cilium CLI `0.19.7`
 (compatible avec Cilium `1.17+`) ; Istio `1.30.4` (la branche `1.30` prend officiellement en charge Kubernetes
 `1.32–1.36`). La version de l'examen ne détermine pas ici la compatibilité du lab tooling ; d'après les données de LF,
 elle est actuellement `v1.34` et se vérifie séparément avant l'examen.
@@ -131,7 +131,7 @@ Ce Pod est placé exprès sur un AUTRE nœud (control-plane, pas le nœud gvisor
 ---
 | **4** | **Activer le Cilium transparent encryption** |
 | :---: | :--- |
-| Ce qu'on fait | • Enregistrez d'abord les versions de Kubernetes, du Cilium agent et de Cilium CLI dans `/var/work/tests/artifacts/4/tool-versions.txt` et assurez-vous que le data plane prend en charge Kubernetes `1.36`.<br/>• Activez WireGuard dans le Helm release existant, créé par `cilium install` : `cilium upgrade --version 1.20.1 --set encryption.enabled=true --set encryption.type=wireguard --wait`.<br/>• Redémarrez les agents (`kubectl -n kube-system rollout restart daemonset/cilium`) : Helm ne change que le ConfigMap, et le template du DaemonSet reste identique.<br/>• Vérifiez `cilium-config` (`enable-wireguard: "true"`) et la disponibilité des deux Cilium agents.<br/>• Un patch direct du ConfigMap n'est admissible que comme baseline-probe pédagogique de courte durée avec un rollback confirmé obligatoire. Ne cherchez pas la commande `cilium encrypt enable` : le CLI client `cilium` n'a pas cette sous-commande.<br/>• Enregistrez l'agent-side `cilium-dbg encrypt status` et `cilium-dbg debuginfo --output json` dans `/var/work/tests/artifacts/4/cilium-encrypt-status.txt` (`cilium-dbg status` n'a pas le flag `--all-encryption`). |
+| Ce qu'on fait | • Enregistrez d'abord les versions de Kubernetes, du Cilium agent et de Cilium CLI dans `/var/work/tests/artifacts/4/tool-versions.txt` et assurez-vous que le data plane prend en charge Kubernetes `1.35`.<br/>• Activez WireGuard dans le Helm release existant, créé par `cilium install` : `cilium upgrade --version 1.20.1 --set encryption.enabled=true --set encryption.type=wireguard --wait`.<br/>• Redémarrez les agents (`kubectl -n kube-system rollout restart daemonset/cilium`) : Helm ne change que le ConfigMap, et le template du DaemonSet reste identique.<br/>• Vérifiez `cilium-config` (`enable-wireguard: "true"`) et la disponibilité des deux Cilium agents.<br/>• Un patch direct du ConfigMap n'est admissible que comme baseline-probe pédagogique de courte durée avec un rollback confirmé obligatoire. Ne cherchez pas la commande `cilium encrypt enable` : le CLI client `cilium` n'a pas cette sous-commande.<br/>• Enregistrez l'agent-side `cilium-dbg encrypt status` et `cilium-dbg debuginfo --output json` dans `/var/work/tests/artifacts/4/cilium-encrypt-status.txt` (`cilium-dbg status` n'a pas le flag `--all-encryption`). |
 | Critères d'acceptation | • La version evidence existe et coïncide avec l'image réelle du DaemonSet `kube-system/cilium`<br/>• Les Cilium agents (DaemonSet) sont entièrement Ready<br/>• Status montre WireGuard et ne montre pas IPsec en même temps<br/>• Le JSON de Debuginfo contient une evidence de peer/allowed-IP (ou remote-node) de l'état inter-nœuds<br/>• Le ConfigMap `kube-system/cilium-config` contient `enable-wireguard: "true"` comme effective-configuration appliquée depuis les Helm values<br/>• Le réglage survit au restart d'un agent Pod (le checker redémarre le Pod et revérifie le statut) |
 
 <details>

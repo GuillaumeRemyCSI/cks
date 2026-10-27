@@ -49,8 +49,8 @@ chown -R ubuntu:ubuntu /var/work/tests/artifacts
 CHECKER_DIR=/var/lib/cks-lab103-checker
 install -d -o root -g root -m 0711 "$CHECKER_DIR"
 curl -fsSL -o "$CHECKER_DIR/kubelet.sha256" \
-  "https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/kubelet.sha256"
+  "https://dl.k8s.io/release/v1.35.2/bin/linux/amd64/kubelet.sha256"
 curl -fsSL -o "$CHECKER_DIR/kubectl.sha256" \
-  "https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/kubectl.sha256"
+  "https://dl.k8s.io/release/v1.35.2/bin/linux/amd64/kubectl.sha256"
 chown root:root "$CHECKER_DIR/kubelet.sha256" "$CHECKER_DIR/kubectl.sha256"
 chmod 0444 "$CHECKER_DIR/kubelet.sha256" "$CHECKER_DIR/kubectl.sha256"

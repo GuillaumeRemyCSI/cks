@@ -67,7 +67,7 @@ Bound projected token 是短效的(由 `expirationSeconds` 指定)，會自動�
 |---|---|
 | `vpc` | VPC `10.10.0.0/16`，含公有子網路 |
 | `ssh-keys` | 用於存取節點的金鑰 |
-| `k8s-1` | 單節點 kubeadm 叢集 Kubernetes `1.36.0`、containerd 與 **Calico** |
+| `k8s-1` | 單節點 kubeadm 叢集 Kubernetes `1.35.2`、containerd 與 **Calico** |
 | `worker` | 已設定好 `kubectl` 與 `check_result` 的工作機 |
 
 Control-plane 允許執行一般的 Pod，因此不需要單獨的 worker 節點。
@@ -148,7 +148,7 @@ check_result
 
 不要透過 `kubectl edit pod` 編輯 Pod 物件 - kubelet 會監看 manifest 檔案，並把任何透過 API 做的變更覆寫回原來的狀態。請編輯節點磁碟上的 `/etc/kubernetes/manifests/kube-apiserver.yaml` 檔案。儲存之後請等待：kubelet 不會立刻發現檔案的變更，而且在 static Pod 重新啟動期間，API server 會有幾秒鐘無法使用 - 如果儲存檔案之後 `curl` 馬上沒有回傳任何東西，不要慌。
 
-單純的 `--anonymous-auth=false` 在這裡**不適用**:kubeadm `release-1.36` 產生的 kube-apiserver static Pod，正好在 `/livez` 與 `/readyz` 上使用 HTTPS liveness/readiness/startup probes，而 kubelet 的 HTTP probes 不會傳遞 client credentials - 完全停用 anonymous access 時，這些請求會得到 `401`,kubelet 會認為容器不健康，並可能讓 kube-apiserver 反覆重新啟動，這不只會破壞這個任務，也會破壞後面的任務 9。正確的做法是 `AuthenticationConfiguration`，搭配 `anonymous.enabled: true` 與 `anonymous.conditions`，把 anonymous access 只限制在需要的 health 路徑：
+單純的 `--anonymous-auth=false` 在這裡**不適用**:kubeadm `release-1.35` 產生的 kube-apiserver static Pod，正好在 `/livez` 與 `/readyz` 上使用 HTTPS liveness/readiness/startup probes，而 kubelet 的 HTTP probes 不會傳遞 client credentials - 完全停用 anonymous access 時，這些請求會得到 `401`,kubelet 會認為容器不健康，並可能讓 kube-apiserver 反覆重新啟動，這不只會破壞這個任務，也會破壞後面的任務 9。正確的做法是 `AuthenticationConfiguration`，搭配 `anonymous.enabled: true` 與 `anonymous.conditions`，把 anonymous access 只限制在需要的 health 路徑：
 
 ```yaml
 # /etc/kubernetes/authentication-config.yaml

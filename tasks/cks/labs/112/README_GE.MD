@@ -41,7 +41,7 @@ Audit log წერს REQUEST-დონის მოვლენებს API s
 
 | კომპონენტი | დანიშნულება |
 |---|---|
-| `k8s-1` | ერთკვანძიანი Kubernetes `1.36.0`, containerd და Calico; node-ის სახელი `control-plane` |
+| `k8s-1` | ერთკვანძიანი Kubernetes `1.35.2`, containerd და Calico; node-ის სახელი `control-plane` |
 | `worker` | სამუშაო მანქანა `kubectl`-ით, `check_result`-ით და SSH-წვდომით `ssh control-plane` |
 | `runtime-112` | მომზადებული namespace; მასში უკვე არის Secret `audit-secret` |
 

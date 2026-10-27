@@ -52,7 +52,7 @@ etcd-ში არსებული ჩანაწერები ძველ
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` საჯარო ქვექსელებით |
 | `ssh-keys` | SSH-გასაღებები worker-ისა და control-plane-ისთვის |
-| `k8s-1` | ერთკვანძიანი kubeadm control-plane: Kubernetes **1.36.0**, containerd, **Calico** |
+| `k8s-1` | ერთკვანძიანი kubeadm control-plane: Kubernetes **1.35.2**, containerd, **Calico** |
 | `worker` | სამუშაო მანქანა `kubectl`-ით; control-plane-ზე (`ssh control-plane`) დაყენებულია სტანდარტული `etcdctl` 3.6.0, როგორც გამოცდაზე |
 
 Control-plane განზრახ იღებს ჩვეულებრივ Pod-ებს - ცალკე Kubernetes worker არ იქმნება.

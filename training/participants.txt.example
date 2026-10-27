@@ -1,0 +1,5 @@
+# Un identifiant par ligne : a-z, 0-9 et '-', 20 caractères max.
+# Il sert à nommer les ressources AWS : pas de nom complet ni d'e-mail.
+p01
+p02
+p03

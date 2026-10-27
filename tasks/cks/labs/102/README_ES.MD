@@ -80,7 +80,7 @@ flowchart LR
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
 | `vpc`            | VPC independiente `10.102.0.0/16` con dos subredes públicas                                 |
 | `ssh-keys`       | claves para acceder a las máquinas virtuales                                                     |
-| `k8s-1`          | clúster kubeadm de un solo nodo con Kubernetes `1.36.0`, containerd y Cilium con kube-proxy replacement            |
+| `k8s-1`          | clúster kubeadm de un solo nodo con Kubernetes `1.35.2`, containerd y Cilium con kube-proxy replacement            |
 | `worker`         | máquina de trabajo con `kubectl`, Cilium CLI, Hubble CLI y `check_result`                                         |
 | Hubble Relay       | lo habilita el `worker.sh` de arranque; para la CLI hace falta un `cilium hubble port-forward` local |
 

@@ -42,7 +42,7 @@ PSS `restricted` განსაზღვრავს security-ველებ�
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` საჯარო ქვექსელებით |
 | `ssh-keys` | SSH-გასაღებები მანქანებზე წვდომისთვის |
-| `k8s-1` | ერთკვანძიანი kubeadm-კლასტერი Kubernetes `1.36.0`, containerd და **Calico** |
+| `k8s-1` | ერთკვანძიანი kubeadm-კლასტერი Kubernetes `1.35.2`, containerd და **Calico** |
 | `worker` | სამუშაო მანქანა `kubectl`-ით, კონტექსტით `cluster1-admin@cluster1` და `check_result`-ით |
 
 Control-plane ჩვეულებრივ Pod-ებს იღებს, ამიტომ ცალკე Kubernetes worker-node
@@ -67,13 +67,13 @@ check_result
 ---
 | **1** | **Enforce restricted დაფიქსირებული ვერსიით** |
 | :---: | :--- |
-| რას ვაკეთებთ | namespace `psa-restricted-107`-ზე დააყენეთ `pod-security.kubernetes.io/enforce=restricted` და `pod-security.kubernetes.io/enforce-version=v1.36`. დარწმუნდით, რომ PSA მართლაც უარყოფს სახიფათო Pod-ს: Pod-ის server-side dry-run `hostNetwork: true`-ით ამ namespace-ში უნდა დასრულდეს `violates PodSecurity` შეცდომით. სისტემური namespace-ების labels ნუ შეცვლით. |
+| რას ვაკეთებთ | namespace `psa-restricted-107`-ზე დააყენეთ `pod-security.kubernetes.io/enforce=restricted` და `pod-security.kubernetes.io/enforce-version=v1.35`. დარწმუნდით, რომ PSA მართლაც უარყოფს სახიფათო Pod-ს: Pod-ის server-side dry-run `hostNetwork: true`-ით ამ namespace-ში უნდა დასრულდეს `violates PodSecurity` შეცდომით. სისტემური namespace-ების labels ნუ შეცვლით. |
 | მიღების კრიტერიუმები | ორივე enforce-label-ს აქვს ზუსტი მნიშვნელობები; სახიფათო Pod `psa-restricted-107`-ში admission-ს ვერ გადის; სისტემური namespace-ები `kube-system`, `kube-public` და `kube-node-lease` ამ ლაბორატორიის ფარგლებში არ იღებენ `pod-security.kubernetes.io/*` labels-ს. |
 
 <details>
 <summary>💡 მინიშნება დავალება 1-ისთვის</summary>
 
-`kubectl label namespace psa-restricted-107 pod-security.kubernetes.io/enforce=restricted pod-security.kubernetes.io/enforce-version=v1.36` - ორივე label მყისიერად გამოიყენება, PSA-ს არაფრის გადატვირთვა არ სჭირდება. შეამოწმეთ თავი `kubectl apply --dry-run=server`-ით `hostNetwork: true`-ით - სწორედ `--dry-run=server` (და არა `client`), რადგან admission controllers, PSA-ს ჩათვლით, მხოლოდ server-side მუშაობენ.
+`kubectl label namespace psa-restricted-107 pod-security.kubernetes.io/enforce=restricted pod-security.kubernetes.io/enforce-version=v1.35` - ორივე label მყისიერად გამოიყენება, PSA-ს არაფრის გადატვირთვა არ სჭირდება. შეამოწმეთ თავი `kubectl apply --dry-run=server`-ით `hostNetwork: true`-ით - სწორედ `--dry-run=server` (და არა `client`), რადგან admission controllers, PSA-ს ჩათვლით, მხოლოდ server-side მუშაობენ.
 </details>
 
 <details>
@@ -105,7 +105,7 @@ echo "baseline exit: $?"
 ```bash
 kubectl label namespace psa-restricted-107 \
   pod-security.kubernetes.io/enforce=restricted \
-  pod-security.kubernetes.io/enforce-version=v1.36
+  pod-security.kubernetes.io/enforce-version=v1.35
 
 kubectl apply --dry-run=server -f - <<'EOF'
 apiVersion: v1
@@ -133,14 +133,14 @@ echo "after-label exit: $?"
 <details>
 <summary>💡 მინიშნება დავალება 2-ისთვის</summary>
 
-თუ Pod admission rejection-ს იღებს - შეცდომის შეტყობინება ყურადღებით წაიკითხეთ, ის ჩვეულებრივ ასახელებს ზუსტ ნაკლულ ველს (მაგალითად, "container has no capabilities.drop"). მნიშვნელოვანი დეტალი PSS `restricted`-ის სემანტიკის შესახებ Kubernetes 1.36-ში: ის მოითხოვს ეფექტურ (არა აუცილებლად სიტყვასიტყვით გამეორებულ) დასაშვებ `seccompProfile`-ს - pod-level პროფილი (`spec.securityContext.seccompProfile.type`) შეიძლება მემკვიდრეობით გადაეცეს კონტეინერებს, რომლებსაც საკუთარი ველი არ აქვთ მითითებული, და პირიქით, container-level ველი საკმარისია, თუ ის ცხადად მითითებულია ყველა კონტეინერზე, pod-level პროფილის გარეშეც. ანუ თავად PSS სიტყვასიტყვით ორივე დონეს ერთდროულად არ მოითხოვს. **ამ ლაბში ჩვენ განზრახ გთხოვთ `RuntimeDefault` ცხადად მიუთითოთ როგორც Pod-ზე, ისე კონტეინერზე** - არა იმიტომ, რომ ამას PSS მოითხოვს, არამედ იმისთვის, რომ კონფიგურაციის ორივე დონეზე ივარჯიშოთ. ანალოგიურად `runAsUser: 1000` - ეს სწორედ ამ ლაბის explicit hardening-გადაწყვეტილებაა: PSS `restricted` კრძალავს UID `0`-ს, მაგრამ კონკრეტულად `1000`-ს არ მოითხოვს (ნებისმიერი არანულოვანი მნიშვნელობა ან ველის სრული არარსებობა თავად PSS-ისთვის დასაშვებია).
+თუ Pod admission rejection-ს იღებს - შეცდომის შეტყობინება ყურადღებით წაიკითხეთ, ის ჩვეულებრივ ასახელებს ზუსტ ნაკლულ ველს (მაგალითად, "container has no capabilities.drop"). მნიშვნელოვანი დეტალი PSS `restricted`-ის სემანტიკის შესახებ Kubernetes 1.35-ში: ის მოითხოვს ეფექტურ (არა აუცილებლად სიტყვასიტყვით გამეორებულ) დასაშვებ `seccompProfile`-ს - pod-level პროფილი (`spec.securityContext.seccompProfile.type`) შეიძლება მემკვიდრეობით გადაეცეს კონტეინერებს, რომლებსაც საკუთარი ველი არ აქვთ მითითებული, და პირიქით, container-level ველი საკმარისია, თუ ის ცხადად მითითებულია ყველა კონტეინერზე, pod-level პროფილის გარეშეც. ანუ თავად PSS სიტყვასიტყვით ორივე დონეს ერთდროულად არ მოითხოვს. **ამ ლაბში ჩვენ განზრახ გთხოვთ `RuntimeDefault` ცხადად მიუთითოთ როგორც Pod-ზე, ისე კონტეინერზე** - არა იმიტომ, რომ ამას PSS მოითხოვს, არამედ იმისთვის, რომ კონფიგურაციის ორივე დონეზე ივარჯიშოთ. ანალოგიურად `runAsUser: 1000` - ეს სწორედ ამ ლაბის explicit hardening-გადაწყვეტილებაა: PSS `restricted` კრძალავს UID `0`-ს, მაგრამ კონკრეტულად `1000`-ს არ მოითხოვს (ნებისმიერი არანულოვანი მნიშვნელობა ან ველის სრული არარსებობა თავად PSS-ისთვის დასაშვებია).
 </details>
 
 ---
 | **3** | **baseline-ის დამკვირვებელი რეჟიმები** |
 | :---: | :--- |
-| რას ვაკეთებთ | namespace `psa-observe-107`-ზე ჩართეთ PSA-ს ორივე რეჟიმი: `pod-security.kubernetes.io/audit=baseline`, `pod-security.kubernetes.io/audit-version=v1.36`, `pod-security.kubernetes.io/warn=baseline`, `pod-security.kubernetes.io/warn-version=v1.36`. `enforce` ნუ დაამატებთ: ეს namespace ბლოკირებამდე ეტაპობრივი დაკვირვებისთვისაა. |
-| მიღების კრიტერიუმები | არის ოთხი audit/warn labels დონით `baseline` და ვერსიით `v1.36`; enforce-label არ არის. |
+| რას ვაკეთებთ | namespace `psa-observe-107`-ზე ჩართეთ PSA-ს ორივე რეჟიმი: `pod-security.kubernetes.io/audit=baseline`, `pod-security.kubernetes.io/audit-version=v1.35`, `pod-security.kubernetes.io/warn=baseline`, `pod-security.kubernetes.io/warn-version=v1.35`. `enforce` ნუ დაამატებთ: ეს namespace ბლოკირებამდე ეტაპობრივი დაკვირვებისთვისაა. |
+| მიღების კრიტერიუმები | არის ოთხი audit/warn labels დონით `baseline` და ვერსიით `v1.35`; enforce-label არ არის. |
 
 <details>
 <summary>💡 მინიშნება დავალება 3-ისთვის</summary>
@@ -171,15 +171,15 @@ EOF
 ```
 
 დააყენეთ ოთხივე label, შემდეგ გაიმეორეთ იგივე manifest - ახლა `kubectl apply`
-უნდა გამოიტანოს `Warning: ... would violate PodSecurity "baseline:v1.36"`, ხოლო ბრძანება
+უნდა გამოიტანოს `Warning: ... would violate PodSecurity "baseline:v1.35"`, ხოლო ბრძანება
 მაინც წარმატებით უნდა დასრულდეს (exit 0), და არა შეცდომით:
 
 ```bash
 kubectl label namespace psa-observe-107 \
   pod-security.kubernetes.io/audit=baseline \
-  pod-security.kubernetes.io/audit-version=v1.36 \
+  pod-security.kubernetes.io/audit-version=v1.35 \
   pod-security.kubernetes.io/warn=baseline \
-  pod-security.kubernetes.io/warn-version=v1.36
+  pod-security.kubernetes.io/warn-version=v1.35
 
 kubectl apply --dry-run=server -f - <<'EOF'
 apiVersion: v1
@@ -207,7 +207,7 @@ echo "exit code: $?"
 <details>
 <summary>💡 მინიშნება დავალება 4-ისთვის</summary>
 
-თუ Pod არ შეიქმნა - შეამოწმეთ, შემთხვევით ხომ არ დააყენეთ `enforce` label დავალება 3-ში მხოლოდ `audit`/`warn`-ის ნაცვლად. PSA-ს Warning პირდაპირ `kubectl apply`-ის გამოტანაში ჩნდება (`Warning: would violate PodSecurity "baseline:v1.36"`), მისი ძებნა ცალკე ლოგში საჭირო არ არის.
+თუ Pod არ შეიქმნა - შეამოწმეთ, შემთხვევით ხომ არ დააყენეთ `enforce` label დავალება 3-ში მხოლოდ `audit`/`warn`-ის ნაცვლად. PSA-ს Warning პირდაპირ `kubectl apply`-ის გამოტანაში ჩნდება (`Warning: would violate PodSecurity "baseline:v1.35"`), მისი ძებნა ცალკე ლოგში საჭირო არ არის.
 </details>
 
 <details>
@@ -427,8 +427,8 @@ echo "exit code in psa-observe-107: $?"
 
 | **7** | **Controller-driven admission denial: დიაგნოსტიკა ReplicaSet events-ით** |
 | :---: | :--- |
-| რას ვაკეთებთ | ცარიელ namespace `psa-controller-107`-ში შექმენით Deployment `controller-app` (label `app=controller-app`, replicas=1) მარტივი Pod template-ით hardening-ის გარეშე (მაგალითად `busybox:1.36`, `sleep 3600`, `securityContext`-ის გარეშე) - ის წარმატებით უნდა გაეშვას, PSA ჯერ ხელს არ უშლის. შემდეგ ჩართეთ `pod-security.kubernetes.io/enforce=restricted` და `enforce-version=v1.36` ამ namespace-ზე (უკვე არსებული Pod აგრძელებს მუშაობას - PSA უკვე შექმნილ ობიექტებს არ ეხება). წაშალეთ მიმდინარე Pod: ReplicaSet შეეცდება ჩანაცვლების შექმნას, და ახლა admission მას უარყოფს. შეამოწმეთ მიზეზი `kubectl -n psa-controller-107 describe rs`-ით და `kubectl -n psa-controller-107 get events`-ით - იქ იქნება `FailedCreate` ტექსტით `violates PodSecurity "restricted:v1.36"`. გაასწორეთ Deployment-ის Pod template (დაამატეთ იგივე hardening ველები, რაც დავალება 2-ში: non-root, `seccompProfile: RuntimeDefault`, `capabilities.drop: [ALL]`, `allowPrivilegeEscalation: false`) და დაელოდეთ, სანამ ReplicaSet წარმატებით შექმნის ახალ Pod-ს, რომელიც admission-ს გადის. |
-| მიღების კრიტერიუმები | Namespace-ში მოქმედებს enforce `restricted:v1.36`; Pod template Deployment-ში სრულად შეესაბამება PSS `restricted`-ს; მიმდინარე Pod-ის წაშლის შემდეგ ReplicaSet რეალურად ქმნის ახალ Ready Pod-ს მოქმედი enforce-რეჟიმის ქვეშ (არა უბრალოდ „ობიექტი არსებობს“ - მოწმდება ცოცხალი წაშლითა და ხელახალი შექმნით). |
+| რას ვაკეთებთ | ცარიელ namespace `psa-controller-107`-ში შექმენით Deployment `controller-app` (label `app=controller-app`, replicas=1) მარტივი Pod template-ით hardening-ის გარეშე (მაგალითად `busybox:1.36`, `sleep 3600`, `securityContext`-ის გარეშე) - ის წარმატებით უნდა გაეშვას, PSA ჯერ ხელს არ უშლის. შემდეგ ჩართეთ `pod-security.kubernetes.io/enforce=restricted` და `enforce-version=v1.35` ამ namespace-ზე (უკვე არსებული Pod აგრძელებს მუშაობას - PSA უკვე შექმნილ ობიექტებს არ ეხება). წაშალეთ მიმდინარე Pod: ReplicaSet შეეცდება ჩანაცვლების შექმნას, და ახლა admission მას უარყოფს. შეამოწმეთ მიზეზი `kubectl -n psa-controller-107 describe rs`-ით და `kubectl -n psa-controller-107 get events`-ით - იქ იქნება `FailedCreate` ტექსტით `violates PodSecurity "restricted:v1.35"`. გაასწორეთ Deployment-ის Pod template (დაამატეთ იგივე hardening ველები, რაც დავალება 2-ში: non-root, `seccompProfile: RuntimeDefault`, `capabilities.drop: [ALL]`, `allowPrivilegeEscalation: false`) და დაელოდეთ, სანამ ReplicaSet წარმატებით შექმნის ახალ Pod-ს, რომელიც admission-ს გადის. |
+| მიღების კრიტერიუმები | Namespace-ში მოქმედებს enforce `restricted:v1.35`; Pod template Deployment-ში სრულად შეესაბამება PSS `restricted`-ს; მიმდინარე Pod-ის წაშლის შემდეგ ReplicaSet რეალურად ქმნის ახალ Ready Pod-ს მოქმედი enforce-რეჟიმის ქვეშ (არა უბრალოდ „ობიექტი არსებობს“ - მოწმდება ცოცხალი წაშლითა და ხელახალი შექმნით). |
 
 <details>
 <summary>💡 მინიშნება დავალება 7-ისთვის</summary>
@@ -470,8 +470,8 @@ TASK=107 make delete_cks_task
 
 ## შენიშვნა PSA-ს ვერსიისა და audit-ის დაკვირვებადობის შესახებ
 
-ლაბი განზრახ ამაგრებს PSA labels-ს `v1.36`-ზე, რადგან თავად სასწავლო კლასტერი მუშაობს
-Kubernetes 1.36.0-ზე. 2026-09-06-ის მდგომარეობით ოფიციალური CKS blueprint Kubernetes
+ლაბი განზრახ ამაგრებს PSA labels-ს `v1.35`-ზე, რადგან თავად სასწავლო კლასტერი მუშაობს
+Kubernetes 1.35.2-ზე. 2026-09-06-ის მდგომარეობით ოფიციალური CKS blueprint Kubernetes
 `v1.35`-ზეა ორიენტირებული; ამიტომ ეს **forward-looking** სასწავლო კონფიგურაციაა, და არა განცხადება გამოცდის
 ვერსიის შესახებ. მიმდინარე გამოცდისთვის მოსამზადებლად შეცვალეთ სუფიქსები `*-version` `v1.35`-ით და
 შეადარეთ ქცევა ამ ვერსიის დოკუმენტაციას.

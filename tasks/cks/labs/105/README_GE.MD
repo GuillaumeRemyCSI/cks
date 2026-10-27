@@ -55,8 +55,8 @@ Core dump - ეს არის პროცესის მეხსიერ�
 |---|---|
 | `vpc` | VPC `10.10.0.0/16` ორი საჯარო ქვექსელით |
 | `ssh-keys` | SSH-გასაღები შიდა კავშირებისთვის |
-| `k8s-1` | ერთკვანძიანი kubeadm-კლასტერი Kubernetes `1.36.0`, containerd, Calico; ეს არის სამიზნე control-plane |
-| `docker-host` | ცალკე Ubuntu 22.04 Docker-ით და განზრახ არაუსაფრთხო კონფიგურაციით |
+| `k8s-1` | ერთკვანძიანი kubeadm-კლასტერი Kubernetes `1.35.2`, containerd, Calico; ეს არის სამიზნე control-plane |
+| `docker-host` | ცალკე Ubuntu 24.04 Docker-ით და განზრახ არაუსაფრთხო კონფიგურაციით |
 | `worker` | სამუშაო მანქანა `kubectl`-ით, SSH-კონფიგურაციით და `check_result`-ით |
 
 `worker`-ს აქვს SSH-წვდომა control-plane-ზე მისი Kubernetes node name-ით და ცალკე

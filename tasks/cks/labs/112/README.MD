@@ -41,7 +41,7 @@ The audit log records REQUEST-level events to the API server (who requested what
 
 | Component | Purpose |
 |---|---|
-| `k8s-1` | a single-node Kubernetes `1.36.0`, containerd, and Calico; the node name is `control-plane` |
+| `k8s-1` | a single-node Kubernetes `1.35.2`, containerd, and Calico; the node name is `control-plane` |
 | `worker` | a work machine with `kubectl`, `check_result`, and SSH access `ssh control-plane` |
 | `runtime-112` | a prepared namespace; it already has the Secret `audit-secret` |
 

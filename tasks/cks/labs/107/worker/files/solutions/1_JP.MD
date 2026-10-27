@@ -14,7 +14,7 @@ PSA は、namespace の labels に基づいて Pod Security Standards を適用�
 ```bash
 kubectl label namespace psa-restricted-107 \
   pod-security.kubernetes.io/enforce=restricted \
-  pod-security.kubernetes.io/enforce-version=v1.36
+  pod-security.kubernetes.io/enforce-version=v1.35
 ```
 
 危険なオブジェクトを保存せずに admission を確認します。`hostNetwork` は `restricted` レベルで
@@ -113,12 +113,12 @@ API server の audit event に annotation
 ```bash
 kubectl label namespace psa-observe-107 \
   pod-security.kubernetes.io/audit=baseline \
-  pod-security.kubernetes.io/audit-version=v1.36 \
+  pod-security.kubernetes.io/audit-version=v1.35 \
   pod-security.kubernetes.io/warn=baseline \
-  pod-security.kubernetes.io/warn-version=v1.36
+  pod-security.kubernetes.io/warn-version=v1.35
 ```
 
-> **バージョンについての但し書き。** `v1.36` は、この学習用インフラの Kubernetes 1.36.0 のために固定されています。
+> **バージョンについての但し書き。** `v1.35` は、この学習用インフラの Kubernetes 1.35.2 のために固定されています。
 > 2026-09-06 時点で、公式の CKS は `v1.35` を対象としています；これは
 > forward-looking な例であり、試験の準備には `*-version=v1.35` を使用してください。
 
@@ -317,7 +317,7 @@ enforce を有効にします - 既存の Pod には触れません：
 ```bash
 kubectl label namespace psa-controller-107 \
   pod-security.kubernetes.io/enforce=restricted \
-  pod-security.kubernetes.io/enforce-version=v1.36
+  pod-security.kubernetes.io/enforce-version=v1.35
 kubectl -n psa-controller-107 get pod
 # controller-app-xxxx は依然として Running - PSA はすでに存在するオブジェクトには作用しません
 ```
@@ -327,7 +327,7 @@ Pod を削除します - ReplicaSet が代わりの Pod を作成しようとし
 ```bash
 kubectl -n psa-controller-107 delete pod -l app=controller-app
 kubectl -n psa-controller-107 get events --sort-by=.lastTimestamp | tail -5
-# ... FailedCreate ... violates PodSecurity "restricted:v1.36": ...
+# ... FailedCreate ... violates PodSecurity "restricted:v1.35": ...
 kubectl -n psa-controller-107 get deploy controller-app
 # controller-app   0/1     1            0           ...   <- READY 0/1, AVAILABLE 0
 ```

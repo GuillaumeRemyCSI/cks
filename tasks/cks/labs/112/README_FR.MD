@@ -41,7 +41,7 @@ L'audit log enregistre des événements au niveau REQUEST vers l'API server (qui
 
 | Composant | Rôle |
 |---|---|
-| `k8s-1` | Kubernetes `1.36.0` mono-nœud, containerd et Calico ; nom du nœud `control-plane` |
+| `k8s-1` | Kubernetes `1.35.2` mono-nœud, containerd et Calico ; nom du nœud `control-plane` |
 | `worker` | machine de travail avec `kubectl`, `check_result` et un accès SSH `ssh control-plane` |
 | `runtime-112` | namespace préparé ; il contient déjà un Secret `audit-secret` |
 
