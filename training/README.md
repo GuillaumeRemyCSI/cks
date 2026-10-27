@@ -9,6 +9,7 @@ Adaptations de ce fork par rapport au dépôt amont :
 | Lab 113 (montée de version) | 1.35.4 → 1.36.x | 1.35.2 → 1.36.x (le sujet reste la montée de mineure) |
 | Scripts et tests téléchargés par les VMs | `ViktorUJ/cks@master` en dur | dépôt et branche configurables (`CKS_REPO`, `CKS_REPO_REF`) |
 | Accès SSH | `0.0.0.0/0` en dur | restreignable à la salle (`CKS_ACCESS_CIDRS`) |
+| Droits S3 des VMs | `s3:*` sur tout le bucket du state (states et mots de passe de tous les participants) | lecture (et écriture pour le master) limitée à `config/<participant>/<lab>/` |
 | Lien de l'énoncé dans les outputs | README russe | README français |
 
 ## Une fois, avant la formation

@@ -19,6 +19,8 @@ EOF
 
 }
 
+# The bucket also holds every environment's Terraform state (SSH passwords included), and
+# participants have sudo on these VMs: S3 access stays limited to this environment's prefix.
 resource "aws_iam_policy" "server" {
   name   = "${local.prefix}-${var.app_name}"
   policy = <<EOF
@@ -48,12 +50,20 @@ resource "aws_iam_policy" "server" {
         {
             "Effect": "Allow",
             "Action": [
-                "s3:*"
+                "s3:GetObject",
+                "s3:PutObject"
             ],
-            "Resource": [
-                "arn:aws:s3:::${var.s3_k8s_config}/*",
-                "arn:aws:s3:::${var.s3_k8s_config}"
-            ]
+            "Resource": "arn:aws:s3:::${var.s3_k8s_config}/config/${local.USER_ID}/${local.ENV_ID}/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::${var.s3_k8s_config}",
+            "Condition": {
+                "StringLike": {
+                    "s3:prefix": "config/${local.USER_ID}/${local.ENV_ID}/*"
+                }
+            }
         }
     ]
 }
