@@ -33,6 +33,8 @@ CKS_GCP_REGION=${CKS_GCP_REGION:-europe-west1}
 CKS_GCP_ZONE=${CKS_GCP_ZONE:-europe-west1-b}
 [[ "$CKS_CLOUD" == aws || "$CKS_CLOUD" == gcp ]] || { echo "ERREUR : CKS_CLOUD doit valoir aws ou gcp" >&2; exit 1; }
 export CKS_REPO CKS_REPO_REF CKS_CLOUD CKS_GCP_PROJECT CKS_GCP_STATE_BUCKET CKS_GCP_REGION CKS_GCP_ZONE
+# gcloud pose des questions (activer une API, etc.) que personne ne verrait : il doit échouer à la place.
+export CLOUDSDK_CORE_DISABLE_PROMPTS=1
 [[ -n "${CKS_ACCESS_CIDRS:-}" ]] && export CKS_ACCESS_CIDRS
 
 die() { echo "ERREUR : $*" >&2; exit 1; }
@@ -136,6 +138,9 @@ preflight_gcp() {
   gcloud projects describe "$CKS_GCP_PROJECT" --format='value(projectId)' >/dev/null 2>&1 ||
     die "projet GCP inaccessible : $CKS_GCP_PROJECT"
   echo "Google Cloud : projet $CKS_GCP_PROJECT, $CKS_GCP_REGION / $CKS_GCP_ZONE"
+  [[ -n "$(gcloud services list --enabled --project "$CKS_GCP_PROJECT" \
+    --filter="config.name=compute.googleapis.com" --format='value(config.name)' 2>/dev/null)" ]] ||
+    die "API Compute Engine désactivée : gcloud services enable compute.googleapis.com --project $CKS_GCP_PROJECT"
   if gcloud storage buckets describe "gs://$CKS_GCP_STATE_BUCKET" --project "$CKS_GCP_PROJECT" >/dev/null 2>&1; then
     echo "State Terraform : gs://$CKS_GCP_STATE_BUCKET"
   else
