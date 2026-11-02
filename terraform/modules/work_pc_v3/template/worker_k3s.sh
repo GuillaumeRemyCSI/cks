@@ -16,7 +16,7 @@ true)
     sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' $SSH_CONFIG_FILE
     sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' $SSH_CONFIG_FILE_CLOUD
 
-    systemctl restart sshd
+    systemctl restart ssh
     echo "*** ssh password "
 ;;
 *)

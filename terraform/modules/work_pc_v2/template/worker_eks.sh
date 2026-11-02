@@ -21,7 +21,7 @@ true)
     SSH_CONFIG_FILE="/etc/ssh/sshd_config"
     sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' $SSH_CONFIG_FILE
     sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' $SSH_CONFIG_FILE
-    systemctl restart sshd
+    systemctl restart ssh
 ;;
 *)
     echo "*** ssh password not enable "

@@ -167,7 +167,7 @@ preflight_gcp() {
   if gcloud storage buckets describe "gs://$CKS_GCP_STATE_BUCKET" --project "$CKS_GCP_PROJECT" >/dev/null 2>&1; then
     echo "State Terraform : gs://$CKS_GCP_STATE_BUCKET"
   else
-    echo "State Terraform : gs://$CKS_GCP_STATE_BUCKET (sera créé par terragrunt)"
+    echo "State Terraform : gs://$CKS_GCP_STATE_BUCKET (sera créé par up)"
   fi
 }
 
@@ -281,8 +281,10 @@ run_stack() {
   cp -r "$(stack_dir "$lab")"/* "$dir"
   export TF_VAR_USER_ID="$id" TF_VAR_ENV_ID="$lab"
   # terragrunt 1.x a remplacé run-all (version 0.73 du repo) par run --all.
-  local all="run-all"
-  terragrunt run --help 2>/dev/null | grep -q -- '--all' && all="run --all"
+  # (pas de tube vers grep -q : avec pipefail, le SIGPIPE reçu par terragrunt fausserait le test)
+  local all="run-all" help
+  help=$(terragrunt run --help 2>/dev/null || true)
+  [[ "$help" == *"--all"* ]] && all="run --all"
   case "$action" in
     # shellcheck disable=SC2086 # $all contient la sous-commande et son option
     run) (cd "$dir" && terragrunt $all apply) ;;
@@ -308,9 +310,21 @@ run_all() {
   done
 }
 
+# terragrunt 1.x ne crée plus le bucket du state (0.73 le faisait) : on le crée nous-mêmes,
+# versionné pour pouvoir récupérer un state abîmé.
+ensure_gcp_state_bucket() {
+  local bucket="gs://$CKS_GCP_STATE_BUCKET"
+  gcloud storage buckets describe "$bucket" --project "$CKS_GCP_PROJECT" >/dev/null 2>&1 && return
+  echo "Création du bucket du state $bucket"
+  gcloud storage buckets create "$bucket" --project "$CKS_GCP_PROJECT" --location "$CKS_GCP_REGION" \
+    --uniform-bucket-level-access --public-access-prevention >/dev/null || die "création de $bucket impossible"
+  gcloud storage buckets update "$bucket" --versioning >/dev/null || die "versioning de $bucket impossible"
+}
+
 cmd_up() {
   (($# > 0)) || usage
   cmd_preflight "$@"
+  [[ "$CKS_CLOUD" == gcp ]] && ensure_gcp_state_bucket
   run_all run "$@"
   local lab
   for lab in "$@"; do cmd_access "$lab"; done

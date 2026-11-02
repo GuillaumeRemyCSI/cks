@@ -36,6 +36,6 @@ remote_state {
     bucket   = local.state_bucket
     prefix   = "terragrunt${path_relative_to_include()}"
     project  = local.project
-    location = "EU"
+    location = local.region
   }
 }

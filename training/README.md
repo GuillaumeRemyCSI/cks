@@ -106,7 +106,7 @@ blancs (`mock/01-04`) restent sur AWS.
    gcloud auth application-default login
    ```
 3. **Configuration** : renseignez `CKS_GCP_PROJECT` et `CKS_GCP_STATE_BUCKET` (le bucket du state
-   est créé par terragrunt s'il n'existe pas), ainsi que `CKS_REPO` / `CKS_REPO_REF` comme sur AWS.
+   est créé par `classroom.sh up` s'il n'existe pas), ainsi que `CKS_REPO` / `CKS_REPO_REF` comme sur AWS.
 4. **Outils** : `terraform`, `terragrunt` v0.73.x, `gcloud`, `jq`.
 5. **Quotas** : le preflight compare le besoin aux quotas du projet (réseaux VPC, règles de
    pare-feu) et de la région (vCPU, IP externes). Sur un projet récent, le quota d'**IP externes**
