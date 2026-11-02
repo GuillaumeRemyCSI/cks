@@ -7,7 +7,7 @@ locals {
 }
 
 terraform {
-  source = "../../..//modules/work_pc_v2/"
+  source = "../../..//modules/${local.vars.locals.cloud == "gcp" ? "gcp_work_pc" : "work_pc_v2"}/"
 
   extra_arguments "retry_lock" {
     commands  = get_terraform_commands_that_need_locking()

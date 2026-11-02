@@ -7,7 +7,7 @@ locals {
 }
 
 terraform {
-  source = "../../..//modules/vpc_v2/"
+  source = "../../..//modules/${local.vars.locals.cloud == "gcp" ? "gcp_network" : "vpc_v2"}/"
 }
 
 inputs = {

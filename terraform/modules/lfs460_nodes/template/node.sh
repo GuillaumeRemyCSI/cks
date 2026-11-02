@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+# Without this, cloud-init restores the instance name at every boot and kubelet loses its node.
+echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99-cks-hostname.cfg
 hostnamectl set-hostname ${hostname}
 grep -q " ${hostname}$" /etc/hosts || echo "127.0.1.1 ${hostname}" >> /etc/hosts
 

@@ -7,7 +7,7 @@ locals {
 }
 
 terraform {
-  source = "../../..//modules/k8s_self_managment_v2/"
+  source = "../../..//modules/${local.vars.locals.cloud == "gcp" ? "gcp_k8s" : "k8s_self_managment_v2"}/"
   extra_arguments "retry_lock" {
     commands  = get_terraform_commands_that_need_locking()
     arguments = ["-lock-timeout=20m"]

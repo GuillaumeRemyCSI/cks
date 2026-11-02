@@ -1,4 +1,7 @@
 locals {
+  # Cloud the lab runs on: "aws" (default) or "gcp" (see training/README.md).
+  cloud = get_env("CKS_CLOUD", "aws")
+
   region           = "eu-central-1"
   vpc_default_cidr = "10.46.0.0/16"
   aws              = "default"

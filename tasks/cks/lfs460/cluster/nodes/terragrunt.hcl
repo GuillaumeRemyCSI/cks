@@ -7,7 +7,7 @@ locals {
 }
 
 terraform {
-  source = "../../..//modules/lfs460_nodes/"
+  source = "../../..//modules/${local.vars.locals.cloud == "gcp" ? "gcp_lfs460_nodes" : "lfs460_nodes"}/"
 }
 
 dependency "vpc" {

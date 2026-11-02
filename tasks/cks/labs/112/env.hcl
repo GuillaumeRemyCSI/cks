@@ -1,4 +1,7 @@
 locals {
+  # Cloud the lab runs on: "aws" (default) or "gcp" (see training/README.md).
+  cloud = get_env("CKS_CLOUD", "aws")
+
   # Repository the lab VMs download their bootstrap scripts and tests from.
   # Override with CKS_REPO=<owner>/<repo> and CKS_REPO_REF=<branch> to use a fork.
   repo     = get_env("CKS_REPO", "ViktorUJ/cks")

@@ -31,7 +31,7 @@ printf '%s secure.cks.local\n' "$CONTROL_PLANE_IP" >> /etc/hosts
 # "control-plane" alias above and any node's real hostname (ip-10-*) in one go.
 for ssh_home in /root /home/ubuntu; do
   install -d -m 0700 "$ssh_home/.ssh"
-  printf 'Host control-plane ip-10-*\n  User ubuntu\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n  LogLevel ERROR\n' >> "$ssh_home/.ssh/config"
+  printf 'Host control-plane ip-10-* cks-*\n  User ubuntu\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n  LogLevel ERROR\n' >> "$ssh_home/.ssh/config"
   chmod 0600 "$ssh_home/.ssh/config"
 done
 chown -R ubuntu:ubuntu /home/ubuntu/.ssh

@@ -7,5 +7,7 @@ venv
 **.__pycache__
 /docker/ping_pong/dist/*
 terraform/environments/**/**
+# Google Cloud environments (the root terragrunt.hcl stays tracked)
+terraform/environments-gcp/*/
 **.vscode
 *.DS_Store

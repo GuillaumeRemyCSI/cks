@@ -16,7 +16,7 @@ chown -R ubuntu:ubuntu /var/work/tests/artifacts
 # failed". Node names are instance hostnames (ip-10-...), aliases come from /etc/hosts.
 for ssh_home in /root /home/ubuntu; do
   install -d -m 0700 "$ssh_home/.ssh"
-  printf 'Host ip-10-* k8s1_* docker-host\n  User ubuntu\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n  LogLevel ERROR\n' >> "$ssh_home/.ssh/config"
+  printf 'Host ip-10-* cks-* k8s1_* docker-host\n  User ubuntu\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n  LogLevel ERROR\n' >> "$ssh_home/.ssh/config"
   chmod 0600 "$ssh_home/.ssh/config"
 done
 chown -R ubuntu:ubuntu /home/ubuntu/.ssh

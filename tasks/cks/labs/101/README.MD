@@ -10,6 +10,8 @@ The lab checks only the network reachability of the IMDS endpoint, without readi
 
 **Residual risk.** The worker EC2 instance has an IAM instance profile attached, and a tokenless IMDSv1 GET to `latest/meta-data/iam/security-credentials/<role>` actually returns temporary AWS credentials (AccessKeyId/SecretAccessKey/SessionToken) - this is not a hypothetical risk but the actual behavior of the current environment. The role itself is restricted to near-zero permissions (least privilege: it cannot even read its own IAM role via `iam:GetRole`), so the practical value of a leak to an attacker is minimal, but the student must clearly understand that in production with the same configuration (`HttpTokens=optional`, IMDSv1 allowed) the same command would return the real credentials of a production role with real permissions. The lab deliberately reproduces this anti-pattern from chapter 02.1 (IMDSv1 allowed, response hop limit `2`) for the purposes of probing and learning to find this vulnerability through NetworkPolicy; in production use `HttpTokens=required` (IMDSv2 only) and `HttpPutResponseHopLimit=1`.
 
+**On Google Cloud** (`CKS_CLOUD=gcp`), `169.254.169.254` is the GCE metadata server (`metadata.google.internal`). The tasks and checks are the same, since they only test network reachability. Reading data there requires the `Metadata-Flavor: Google` header, and the lab VMs have no service account attached: no cloud credentials can be obtained from it, so the residual risk above does not apply.
+
 ## Deployment
 
 On the management machine, start the environment:

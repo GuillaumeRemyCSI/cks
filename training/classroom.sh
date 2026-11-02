@@ -11,6 +11,7 @@
 #   training/classroom.sh up lfs460-single     nœud 'single' (chapitres 2-3)
 #   training/classroom.sh up lfs460-cluster    nœuds 'cp' et 'worker' (chapitre 4 et suivants)
 #
+# Cloud : AWS par défaut, Google Cloud avec CKS_CLOUD=gcp (voir training/README.md).
 # Configuration : training/classroom.env (copier classroom.env.example).
 set -euo pipefail
 
@@ -27,14 +28,18 @@ OUT_DIR="$TRAINING_DIR/out"
 LOG_DIR="$TRAINING_DIR/logs"
 UPSTREAM_REPO="ViktorUJ/cks"
 UPSTREAM_BUCKET="sre-learning-platform-state-backet"
-export CKS_REPO CKS_REPO_REF
+CKS_CLOUD=${CKS_CLOUD:-aws}
+CKS_GCP_REGION=${CKS_GCP_REGION:-europe-west1}
+CKS_GCP_ZONE=${CKS_GCP_ZONE:-europe-west1-b}
+[[ "$CKS_CLOUD" == aws || "$CKS_CLOUD" == gcp ]] || { echo "ERREUR : CKS_CLOUD doit valoir aws ou gcp" >&2; exit 1; }
+export CKS_REPO CKS_REPO_REF CKS_CLOUD CKS_GCP_PROJECT CKS_GCP_STATE_BUCKET CKS_GCP_REGION CKS_GCP_ZONE
 [[ -n "${CKS_ACCESS_CIDRS:-}" ]] && export CKS_ACCESS_CIDRS
 
 die() { echo "ERREUR : $*" >&2; exit 1; }
 warn() { echo "ATTENTION : $*" >&2; }
 
 usage() {
-  sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'
   exit 1
 }
 
@@ -42,7 +47,7 @@ participants() {
   [[ -f "$PARTICIPANTS_FILE" ]] || die "liste des participants introuvable : $PARTICIPANTS_FILE"
   local id
   grep -vE '^[[:space:]]*(#|$)' "$PARTICIPANTS_FILE" | tr -d ' \r' | while read -r id; do
-    # L'identifiant finit dans des noms de ressources AWS et des chemins S3.
+    # L'identifiant finit dans des noms de ressources cloud et des chemins de state.
     [[ "$id" =~ ^[a-z0-9][a-z0-9-]{0,19}$ ]] || die "identifiant invalide '$id' (a-z, 0-9, '-', 20 caractères max)"
     echo "$id"
   done
@@ -50,6 +55,12 @@ participants() {
 
 # Les VMs vierges LFS460 ne passent pas par le Makefile, qui ne connaît que tasks/cks/labs.
 is_nodes() { [[ "$1" == lfs460-* ]]; }
+
+# Le Makefile ne gère que les labs sur AWS : le reste est déployé par run_stack.
+uses_make() { [[ "$CKS_CLOUD" == aws ]] && ! is_nodes "$1"; }
+
+# Chaque cloud a sa configuration racine terragrunt (state S3 ou GCS), trouvée en remontant l'arborescence.
+env_root() { if [[ "$CKS_CLOUD" == gcp ]]; then echo "$ROOT/terraform/environments-gcp"; else echo "$ROOT/terraform/environments"; fi; }
 
 stack_dir() {
   if is_nodes "$1"; then echo "$ROOT/tasks/cks/lfs460/${1#lfs460-}"; else echo "$ROOT/tasks/cks/labs/$1"; fi
@@ -61,10 +72,22 @@ check_lab() {
 }
 
 env_dir() {
-  if is_nodes "$2"; then echo "$ROOT/terraform/environments/${1}_${2}"; else echo "$ROOT/terraform/environments/${1}_${2}_cks-labs"; fi
+  if uses_make "$2"; then echo "$(env_root)/${1}_${2}_cks-labs"; else echo "$(env_root)/${1}_${2}"; fi
 }
 
-lab_region() { grep -E '^\s*region\s*=' "$(stack_dir "$1")/env.hcl" | head -1 | awk -F'"' '{print $2}'; }
+lab_region() {
+  if [[ "$CKS_CLOUD" == gcp ]]; then echo "$CKS_GCP_REGION"; return; fi
+  grep -E '^\s*region\s*=' "$(stack_dir "$1")/env.hcl" | head -1 | awk -F'"' '{print $2}'
+}
+
+# Règles de pare-feu GCP d'un lab : une pour le réseau, plus une par groupe de VMs.
+lab_firewalls() {
+  local dir count=1
+  for dir in "$(stack_dir "$1")"/*/; do
+    case "$(basename "$dir")" in k8s-* | worker | docker-host | nodes) count=$((count + 1)) ;; esac
+  done
+  echo "$count"
+}
 
 # Nombre d'instances EC2 d'un lab, toutes à 2 vCPU (t3) : une VM par référence à un type d'instance,
 # ou par nœud déclaré pour les VMs LFS460.
@@ -76,23 +99,26 @@ lab_instances() {
   fi
 }
 
-quota() {
+aws_quota() {
   aws service-quotas get-service-quota --region "$1" --service-code "$2" --quota-code "$3" \
     --query 'Quota.Value' --output text 2>/dev/null | cut -d. -f1
 }
 
-cmd_preflight() {
-  local errors=0 tool lab
-  for tool in make terraform terragrunt aws jq curl; do
-    command -v "$tool" >/dev/null || { echo "  - outil manquant : $tool"; errors=$((errors + 1)); }
-  done
-  ((errors == 0)) || die "installez les outils manquants (terragrunt : v0.73.x, comme dans docker/runner)"
+# "<limite> <utilisé>" d'un quota GCP, régional (CPUS, IN_USE_ADDRESSES) ou du projet (NETWORKS, FIREWALLS).
+gcp_quota() {
+  local json
+  if [[ "$1" == project ]]; then
+    json=$(gcloud compute project-info describe --project "$CKS_GCP_PROJECT" --format=json 2>/dev/null) || return 0
+  else
+    json=$(gcloud compute regions describe "$1" --project "$CKS_GCP_PROJECT" --format=json 2>/dev/null) || return 0
+  fi
+  jq -r --arg m "$2" '.quotas[] | select(.metric == $m) | "\(.limit | floor) \(.usage | floor)"' <<<"$json"
+}
 
-  local arn
+preflight_aws() {
+  local arn bucket
   arn=$(aws sts get-caller-identity --query Arn --output text) || die "pas d'accès AWS (aws configure / AWS_PROFILE)"
   echo "AWS : $arn"
-
-  local bucket
   bucket=$(grep '^  backend_bucket' "$ROOT/terraform/environments/terragrunt.hcl" | awk -F'"' '{print $2}')
   if [[ "$bucket" == "$UPSTREAM_BUCKET" ]]; then
     echo "  - backend_bucket est celui du projet amont : mettez votre propre nom dans terraform/environments/terragrunt.hcl"
@@ -100,6 +126,48 @@ cmd_preflight() {
   else
     echo "State Terraform : s3://$bucket"
   fi
+}
+
+preflight_gcp() {
+  [[ -n "${CKS_GCP_PROJECT:-}" ]] || die "CKS_GCP_PROJECT n'est pas défini (training/classroom.env)"
+  [[ -n "${CKS_GCP_STATE_BUCKET:-}" ]] || die "CKS_GCP_STATE_BUCKET n'est pas défini (training/classroom.env)"
+  gcloud auth application-default print-access-token >/dev/null 2>&1 ||
+    die "pas d'identifiants pour Terraform : gcloud auth application-default login"
+  gcloud projects describe "$CKS_GCP_PROJECT" --format='value(projectId)' >/dev/null 2>&1 ||
+    die "projet GCP inaccessible : $CKS_GCP_PROJECT"
+  echo "Google Cloud : projet $CKS_GCP_PROJECT, $CKS_GCP_REGION / $CKS_GCP_ZONE"
+  if gcloud storage buckets describe "gs://$CKS_GCP_STATE_BUCKET" --project "$CKS_GCP_PROJECT" >/dev/null 2>&1; then
+    echo "State Terraform : gs://$CKS_GCP_STATE_BUCKET"
+  else
+    echo "State Terraform : gs://$CKS_GCP_STATE_BUCKET (sera créé par terragrunt)"
+  fi
+}
+
+# Compare un besoin à ce qui reste d'un quota : check_need <libellé> <besoin> <limite> <utilisé>.
+# Une limite vide (quota illisible) est signalée sans bloquer.
+check_need() {
+  local label=$1 need=$2 limit=${3:-} used=${4:-0}
+  if [[ -z "$limit" ]]; then
+    echo "  $label : besoin $need, quota inconnu (vérifiez-le dans la console)"
+    return
+  fi
+  echo "  $label : besoin $need, disponible $((limit - used)) (quota $limit)"
+  if ((need > limit - used)); then
+    echo "  - quota insuffisant : $label (demandez une augmentation dans la console)"
+    errors=$((errors + 1))
+  fi
+}
+
+cmd_preflight() {
+  local errors=0 tool lab
+  local tools="terraform terragrunt jq curl"
+  if [[ "$CKS_CLOUD" == gcp ]]; then tools+=" gcloud"; else tools+=" make aws"; fi
+  for tool in $tools; do
+    command -v "$tool" >/dev/null || { echo "  - outil manquant : $tool"; errors=$((errors + 1)); }
+  done
+  ((errors == 0)) || die "installez les outils manquants (terragrunt : v0.73.x, comme dans docker/runner)"
+
+  "preflight_$CKS_CLOUD"
 
   # Les VMs LFS460 ne téléchargent rien depuis le fork : la vérification ne concerne que les labs 101-115.
   local needs_repo=$(($# == 0))
@@ -127,25 +195,30 @@ cmd_preflight() {
   echo "Participants : $n"
 
   if (($# > 0)); then
-    local region vpcs=0 vcpus=0 used_vpcs vpc_quota vcpu_quota
+    local region networks=0 vms=0 firewalls=0
     for lab in "$@"; do
       check_lab "$lab"
       region=$(lab_region "$lab")
-      vpcs=$((vpcs + n))
-      vcpus=$((vcpus + n * 2 * $(lab_instances "$lab")))
+      networks=$((networks + n))
+      vms=$((vms + n * $(lab_instances "$lab")))
+      firewalls=$((firewalls + n * $(lab_firewalls "$lab")))
     done
-    # Tous les labs CKS sont dans la même région : on raisonne sur la dernière lue.
-    used_vpcs=$(aws ec2 describe-vpcs --region "$region" --query 'length(Vpcs)' --output text)
-    vpc_quota=$(quota "$region" vpc L-F678F1CE)
-    vcpu_quota=$(quota "$region" ec2 L-1216C47A)
-    echo "Région $region : besoin estimé $vpcs VPC (existants : $used_vpcs, quota : ${vpc_quota:-?}), $vcpus vCPU on-demand (quota : ${vcpu_quota:-?})"
-    if [[ -n "$vpc_quota" ]] && ((used_vpcs + vpcs > vpc_quota)); then
-      echo "  - quota VPC insuffisant : demandez une augmentation (Service Quotas > Amazon VPC > VPCs per Region)"
-      errors=$((errors + 1))
-    fi
-    if [[ -n "$vcpu_quota" ]] && ((vcpus > vcpu_quota)); then
-      echo "  - quota vCPU insuffisant : demandez une augmentation (Service Quotas > EC2 > Running On-Demand Standard instances)"
-      errors=$((errors + 1))
+    # Tous les labs sont dans la même région ; toutes les VMs ont 2 vCPU.
+    echo "Quotas ($region) :"
+    if [[ "$CKS_CLOUD" == gcp ]]; then
+      # shellcheck disable=SC2046 # gcp_quota renvoie "<limite> <utilisé>"
+      check_need "réseaux VPC (projet)" "$networks" $(gcp_quota project NETWORKS)
+      # shellcheck disable=SC2046
+      check_need "règles de pare-feu (projet)" "$firewalls" $(gcp_quota project FIREWALLS)
+      # shellcheck disable=SC2046
+      check_need "vCPU" "$((vms * 2))" $(gcp_quota "$region" CPUS)
+      # shellcheck disable=SC2046
+      check_need "IP externes" "$vms" $(gcp_quota "$region" IN_USE_ADDRESSES)
+    else
+      local used_vpcs
+      used_vpcs=$(aws ec2 describe-vpcs --region "$region" --query 'length(Vpcs)' --output text)
+      check_need "VPC" "$networks" "$(aws_quota "$region" vpc L-F678F1CE)" "$used_vpcs"
+      check_need "vCPU on-demand" "$((vms * 2))" "$(aws_quota "$region" ec2 L-1216C47A)" 0
     fi
   fi
 
@@ -160,8 +233,8 @@ cmd_one() {
   log="$LOG_DIR/$lab/$id.$action.log"
   # Sans terminal, la confirmation de 'terragrunt run-all' échouerait.
   export TERRAGRUNT_NON_INTERACTIVE=true TG_NON_INTERACTIVE=true
-  if is_nodes "$lab"; then
-    run_nodes "$action" "$lab" "$id" >"$log" 2>&1 </dev/null && status=OK || status=ECHEC
+  if ! uses_make "$lab"; then
+    run_stack "$action" "$lab" "$id" >"$log" 2>&1 </dev/null && status=OK || status=ECHEC
   elif (cd "$ROOT" && USER_ID="$id" ENV_ID="$lab" TASK="$lab" make "${action}_cks_task") >"$log" 2>&1 </dev/null; then
     status=OK
   else
@@ -171,9 +244,9 @@ cmd_one() {
   echo "[$lab] $id : $action $status"
 }
 
-# Équivalent du Makefile pour les VMs LFS460 : copie de la stack sous terraform/environments
-# (où se trouve la configuration racine de terragrunt), puis apply ou destroy.
-run_nodes() {
+# Équivalent du Makefile (VMs LFS460, labs sur GCP) : copie de la stack sous la racine terragrunt
+# du cloud choisi, puis apply ou destroy.
+run_stack() {
   local action=$1 lab=$2 id=$3 dir
   dir=$(env_dir "$id" "$lab")
   mkdir -p "$dir"

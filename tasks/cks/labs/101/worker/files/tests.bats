@@ -166,7 +166,7 @@ backend_ip() {
      assert_transport_denied "$denied" && assert_reachable "$control_after_deny"; then
     echo 1 >> /var/work/tests/result/ok
   else
-    echo "HINT: default-deny must yield HTTP 000 with curl 7/28 for an unselected cks-101 probe, while the checker-owned independent imds-control namespace reaches real EC2 IMDS both before and after." >&2
+    echo "HINT: default-deny must yield HTTP 000 with curl 7/28 for an unselected cks-101 probe, while the checker-owned independent imds-control namespace reaches the real cloud metadata endpoint (EC2 IMDS or GCE metadata server) both before and after." >&2
     false
   fi
 }
@@ -248,7 +248,7 @@ backend_ip() {
      assert_reachable "$control_after"; then
     echo 1 >> /var/work/tests/result/ok
   else
-    echo "HINT: frontend must receive HTTP 000 with curl 7/28 for IMDS, while checker-owned independent control must reach real EC2 IMDS before and after the probe." >&2
+    echo "HINT: frontend must receive HTTP 000 with curl 7/28 for IMDS, while checker-owned independent control must reach the real cloud metadata endpoint (EC2 IMDS or GCE metadata server) before and after the probe." >&2
     false
   fi
 }
@@ -289,7 +289,7 @@ backend_ip() {
      assert_transport_denied "$wrong_label" && assert_transport_denied "$wrong_namespace"; then
     echo 1 >> /var/work/tests/result/ok
   else
-    echo "HINT: Legacy must exclude real EC2 IMDS with literal 169.254.169.254/32; the actual legacy workload alone must reach backend, while wrong-label and wrong-namespace probes with checker egress remain denied." >&2
+    echo "HINT: Legacy must exclude the real cloud metadata endpoint (EC2 IMDS or GCE metadata server) with literal 169.254.169.254/32; the actual legacy workload alone must reach backend, while wrong-label and wrong-namespace probes with checker egress remain denied." >&2
     false
   fi
 }

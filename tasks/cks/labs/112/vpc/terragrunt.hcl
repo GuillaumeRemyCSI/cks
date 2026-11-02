@@ -6,7 +6,7 @@ locals {
   vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))
 }
 
-terraform { source = "../../..//modules/vpc_v2/" }
+terraform { source = "../../..//modules/${local.vars.locals.cloud == "gcp" ? "gcp_network" : "vpc_v2"}/" }
 
 inputs = {
   region               = local.vars.locals.region
