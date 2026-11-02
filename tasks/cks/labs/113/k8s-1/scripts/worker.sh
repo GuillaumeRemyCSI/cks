@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export KUBECONFIG=/root/.kube/config
+# A worker node has no admin kubeconfig (only the control-plane does): use the kubelet's own
+# credentials, which may read this node's Node object.
+export KUBECONFIG=/etc/kubernetes/kubelet.conf
 
 # Интерактивный `apt-get install` в Ubuntu 22.04 показывает диалог needrestart (OK/Cancel) и теряет
 # вставленные в терминал команды. Только выводим список сервисов, не показывая диалог.

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export KUBECONFIG=/root/.kube/config
+# A worker node has no admin kubeconfig (only the control-plane does): use the kubelet's own
+# credentials, which may read this node's Node object.
+export KUBECONFIG=/etc/kubernetes/kubelet.conf
 
 echo "*** worker node bootstrap: CKS lab 103 (CIS Benchmark / kube-bench)"
 until kubectl get node "$(hostname)" >/dev/null 2>&1; do sleep 5; done
