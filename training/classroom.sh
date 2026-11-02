@@ -18,8 +18,16 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 TRAINING_DIR="$ROOT/training"
 CONF=${CKS_CLASSROOM_CONF:-$TRAINING_DIR/classroom.env}
+# Les variables passées sur la ligne de commande (PARTICIPANTS_FILE=... classroom.sh up 107)
+# priment sur classroom.env.
+overrides=()
+for var in PARTICIPANTS_FILE PARALLEL CKS_CLOUD CKS_REPO CKS_REPO_REF CKS_ACCESS_CIDRS \
+  CKS_GCP_PROJECT CKS_GCP_STATE_BUCKET CKS_GCP_REGION CKS_GCP_ZONE; do
+  [[ -n "${!var+x}" ]] && overrides+=("$var=${!var}")
+done
 # shellcheck disable=SC1090
 [[ -f "$CONF" ]] && . "$CONF"
+for override in ${overrides[@]+"${overrides[@]}"}; do export "$override"; done
 
 PARTICIPANTS_FILE=${PARTICIPANTS_FILE:-$TRAINING_DIR/participants.txt}
 PARALLEL=${PARALLEL:-4}
@@ -35,7 +43,22 @@ CKS_GCP_ZONE=${CKS_GCP_ZONE:-europe-west1-b}
 export CKS_REPO CKS_REPO_REF CKS_CLOUD CKS_GCP_PROJECT CKS_GCP_STATE_BUCKET CKS_GCP_REGION CKS_GCP_ZONE
 # gcloud pose des questions (activer une API, etc.) que personne ne verrait : il doit échouer à la place.
 export CLOUDSDK_CORE_DISABLE_PROMPTS=1
-[[ -n "${CKS_ACCESS_CIDRS:-}" ]] && export CKS_ACCESS_CIDRS
+
+# CIDR IPv4 uniquement (les VMs n'ont pas d'IPv6) ; une adresse seule devient un /32.
+if [[ -n "${CKS_ACCESS_CIDRS:-}" ]]; then
+  cidrs=""
+  IFS=',' read -ra parts <<<"${CKS_ACCESS_CIDRS// /}"
+  for cidr in "${parts[@]}"; do
+    if [[ "$cidr" == *:* ]]; then
+      echo "ERREUR : CKS_ACCESS_CIDRS : $cidr est une adresse IPv6, or les VMs n'ont que de l'IPv4 (votre IPv4 : curl -4 -s ifconfig.me)" >&2
+      exit 1
+    fi
+    [[ "$cidr" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}(/[0-9]{1,2})?$ ]] || { echo "ERREUR : CKS_ACCESS_CIDRS : '$cidr' n'est pas un CIDR IPv4" >&2; exit 1; }
+    [[ "$cidr" == */* ]] || cidr="$cidr/32"
+    cidrs+="${cidrs:+,}$cidr"
+  done
+  export CKS_ACCESS_CIDRS=$cidrs
+fi
 
 die() { echo "ERREUR : $*" >&2; exit 1; }
 warn() { echo "ATTENTION : $*" >&2; }
@@ -257,9 +280,14 @@ run_stack() {
   mkdir -p "$dir"
   cp -r "$(stack_dir "$lab")"/* "$dir"
   export TF_VAR_USER_ID="$id" TF_VAR_ENV_ID="$lab"
+  # terragrunt 1.x a remplacé run-all (version 0.73 du repo) par run --all.
+  local all="run-all"
+  terragrunt run --help 2>/dev/null | grep -q -- '--all' && all="run --all"
   case "$action" in
-    run) (cd "$dir" && terragrunt run-all apply) ;;
-    delete) (cd "$dir" && terragrunt run-all destroy) && rm -rf "$dir" ;;
+    # shellcheck disable=SC2086 # $all contient la sous-commande et son option
+    run) (cd "$dir" && terragrunt $all apply) ;;
+    # shellcheck disable=SC2086
+    delete) (cd "$dir" && terragrunt $all destroy) && rm -rf "$dir" ;;
   esac
 }
 
