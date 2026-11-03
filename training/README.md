@@ -1,146 +1,147 @@
-# Formation CKS (LFS460) : déployer les labs pour une classe
+# CKS training (LFS460): deploying the labs for a class
 
-Adaptations de ce fork par rapport au dépôt amont :
+Changes in this fork compared with the upstream repository:
 
-| Sujet | Amont | Ici |
+| Topic | Upstream | Here |
 |---|---|---|
-| Kubernetes des labs 101-115 | 1.36.0 | **1.35.2**, même mineure que l'examen CKS |
-| OS des VMs | Ubuntu 22.04 | **Ubuntu 24.04** |
-| Lab 113 (montée de version) | 1.35.4 → 1.36.x | 1.35.2 → 1.36.x (le sujet reste la montée de mineure) |
-| Scripts et tests téléchargés par les VMs | `ViktorUJ/cks@master` en dur | dépôt et branche configurables (`CKS_REPO`, `CKS_REPO_REF`) |
-| Accès SSH | `0.0.0.0/0` en dur | restreignable à la salle (`CKS_ACCESS_CIDRS`) |
-| Droits S3 des VMs | `s3:*` sur tout le bucket du state (states et mots de passe de tous les participants) | lecture (et écriture pour le master) limitée à `config/<participant>/<lab>/` |
-| Lien de l'énoncé dans les outputs | README russe | README français |
-| Cloud | AWS uniquement | AWS ou **Google Cloud** (`CKS_CLOUD=gcp`, voir plus bas) |
+| Kubernetes of labs 101-115 | 1.36.0 | **1.35.2**, the same minor as the CKS exam |
+| VM operating system | Ubuntu 22.04 | **Ubuntu 24.04** |
+| Lab 113 (upgrade) | 1.35.4 → 1.36.x | 1.35.2 → 1.36.x (the topic is still a minor upgrade) |
+| Scripts and tests downloaded by the VMs | hard-coded `ViktorUJ/cks@master` | configurable repository and branch (`CKS_REPO`, `CKS_REPO_REF`) |
+| SSH access | hard-coded `0.0.0.0/0` | can be restricted to the room (`CKS_ACCESS_CIDRS`) |
+| S3 permissions of the VMs | `s3:*` on the whole state bucket (states and passwords of every participant) | read (and write for the master) limited to `config/<participant>/<lab>/` |
+| Instructions link in the outputs | Russian README | English README |
+| Cloud | AWS only | AWS or **Google Cloud** (`CKS_CLOUD=gcp`, see below) |
 
-## Une fois, avant la formation
+To run the labs yourself before the course, see [LABS.md](LABS.md).
 
-Les étapes 2, 3 et 5 ci-dessous concernent AWS. Sur Google Cloud, suivez plutôt la section
-[Sur Google Cloud](#sur-google-cloud).
+## Once, before the course
 
-1. **Publier ce fork.** Les VMs téléchargent au démarrage leurs scripts et les tests de
-   `check_result` depuis GitHub : sans fork poussé, elles utiliseraient les versions amont
-   (1.36) et les tests échoueraient. Le dépôt doit être public.
-2. **Bucket du state Terraform.** Remplacez `backend_bucket` dans
-   `terraform/environments/terragrunt.hcl` par un nom à vous (unique au monde). Terragrunt crée
-   le bucket et la table DynamoDB s'ils n'existent pas.
-3. **Outils** : `terraform`, `terragrunt` v0.73.x (version du runner Docker du projet), `aws`,
-   `jq`, `make`.
-4. **Configuration** :
+Steps 2, 3 and 5 below are about AWS. On Google Cloud, follow the
+[On Google Cloud](#on-google-cloud) section instead.
+
+1. **Publish this fork.** At boot, the VMs download their scripts and the `check_result` tests
+   from GitHub: without a pushed fork they would use the upstream versions (1.36) and the tests
+   would fail. The repository must be public.
+2. **Terraform state bucket.** Replace `backend_bucket` in
+   `terraform/environments/terragrunt.hcl` with a name of your own (globally unique).
+   Terragrunt 0.73 creates the bucket and the DynamoDB table if they do not exist.
+3. **Tools**: `terraform`, `terragrunt` v0.73.x (the version of the project's Docker runner;
+   the Makefile does not work with terragrunt 1.x), `aws`, `jq`, `make`.
+4. **Configuration**:
    ```bash
    cp training/classroom.env.example training/classroom.env
    cp training/participants.txt.example training/participants.txt
    ```
-   puis renseignez `CKS_REPO`, `CKS_REPO_REF`, l'IP de la salle et la liste des participants
-   (identifiants courts, pas de données personnelles).
-5. **Quotas AWS** (région `eu-central-1`) : un VPC par participant et par lab déployé en même
-   temps, alors que le quota par défaut est de **5 VPC par région**. Il faut aussi compter
-   4 à 6 vCPU par participant et par lab. Le preflight calcule le besoin et le compare aux quotas :
+   then fill in `CKS_REPO`, `CKS_REPO_REF`, the room's IPv4 and the participant list
+   (short ids, no personal data).
+5. **AWS quotas** (region `eu-central-1`): one VPC per participant and per lab deployed at the
+   same time, while the default quota is **5 VPCs per region**. Also count 4 to 6 vCPUs per
+   participant and per lab. The preflight computes the need and compares it with the quotas:
    ```bash
    training/classroom.sh preflight 101 102
    ```
-   Demandez les augmentations plusieurs jours à l'avance.
-6. **Répétition générale** : déployez chaque lab prévu pour un seul participant (`p00`
-   par exemple), faites-le, puis lancez `check_result`. C'est la seule vraie validation du passage
-   en 24.04 / 1.35.2.
+   Request increases several days in advance.
+6. **Dry run**: deploy each planned lab for a single participant (`p00` for instance), solve
+   it, then run `check_result`. It is the only real validation of the move to 24.04 / 1.35.2.
 
-## Pendant la formation
-
-```bash
-training/classroom.sh up 107            # déploie le lab 107 pour chaque participant
-training/classroom.sh access 107        # régénère les fiches d'accès
-training/classroom.sh down 107          # détruit les environnements du lab 107
-```
-
-### VMs vierges des exercices officiels LFS460
-
-Les exercices du support de cours se font sur des VMs Ubuntu 24.04 vierges, où les participants
-installent eux-mêmes Kubernetes avec les scripts de la LF :
+## During the course
 
 ```bash
-training/classroom.sh up lfs460-single     # chapitres 2-3 : un nœud 'single'
-training/classroom.sh down lfs460-single   # à la fin du chapitre 3 (« two fresh nodes »)
-training/classroom.sh up lfs460-cluster    # chapitre 4 et suivants : nœuds 'cp' et 'worker'
+training/classroom.sh up 107            # deploys lab 107 for each participant
+training/classroom.sh access 107        # regenerates the access sheets
+training/classroom.sh down 107          # destroys the lab 107 environments
 ```
 
-Chaque participant reçoit des t3.large (2 vCPU / 8 Go) avec l'utilisateur `student`
-(sudo sans mot de passe), un mot de passe SSH commun à ses nœuds et un trafic libre entre ses
-nœuds. Ces VMs n'ont aucun rôle IAM et ne téléchargent rien depuis le fork. Vous
-communiquez vous-même les identifiants de téléchargement des fichiers du cours (cm.lf.training).
+### Bare VMs for the official LFS460 exercises
 
-### Fonctionnement commun
-
-`up` vérifie le preflight, déploie `PARALLEL` participants à la fois (comptez 10-15 min par
-vague), puis écrit dans `training/out/107/` une fiche `<participant>.txt` par personne (IP, mot de
-passe, lien vers l'énoncé) ainsi que `acces.csv`. Ces fichiers contiennent des mots de passe et
-ne sont pas versionnés.
-
-Les logs de chaque déploiement sont dans `training/logs/<lab>/<participant>.<action>.log`. Pour
-relancer un seul participant en échec :
+The exercises of the course material run on bare Ubuntu 24.04 VMs, where the participants install
+Kubernetes themselves with the LF scripts:
 
 ```bash
-USER_ID=p03 ENV_ID=107 TASK=107 make run_cks_task
+training/classroom.sh up lfs460-single     # chapters 2-3: one 'single' node
+training/classroom.sh down lfs460-single   # at the end of chapter 3 ("two fresh nodes")
+training/classroom.sh up lfs460-cluster    # chapter 4 onwards: 'cp' and 'worker' nodes
 ```
 
-**Coûts** : pensez au `down` en fin de journée. Pour vérifier qu'il ne reste rien :
+Each participant gets 2 vCPU / 8 GB VMs (t3.large or e2-standard-2) with the `student` user
+(passwordless sudo), one SSH password shared by their nodes, and unrestricted traffic between
+their nodes. These VMs have no cloud credentials and download nothing from the fork. You give
+the participants the credentials to download the course files (cm.lf.training) yourself.
 
-```bash
-make cmdb_get_env_all
-```
+### How it works
 
-## Sur Google Cloud
+`up` runs the preflight, deploys `PARALLEL` participants at a time (allow 10-15 min per wave),
+then writes into `training/out/107/` one `<participant>.txt` sheet per person (IP, password,
+link to the instructions) and `access.csv`. These files contain passwords and are not versioned.
 
-Avec `CKS_CLOUD="gcp"` dans `training/classroom.env`, les mêmes commandes (`preflight`, `up`,
-`access`, `down`) déploient les labs 101-115 et les VMs LFS460 sur Google Cloud. Les examens
-blancs (`mock/01-04`) restent sur AWS.
-
-### Mise en place
-
-1. **Projet** : créez-en un dédié à la formation, avec la facturation activée, puis activez
-   l'API Compute Engine :
-   ```bash
-   gcloud services enable compute.googleapis.com --project <id-du-projet>
-   ```
-2. **Identifiants pour Terraform** :
-   ```bash
-   gcloud auth application-default login
-   ```
-3. **Configuration** : renseignez `CKS_GCP_PROJECT` et `CKS_GCP_STATE_BUCKET` (le bucket du state
-   est créé par `classroom.sh up` s'il n'existe pas), ainsi que `CKS_REPO` / `CKS_REPO_REF` comme sur AWS.
-4. **Outils** : `terraform`, `terragrunt` v0.73.x, `gcloud`, `jq`.
-5. **Quotas** : le preflight compare le besoin aux quotas du projet (réseaux VPC, règles de
-   pare-feu) et de la région (vCPU, IP externes). Sur un projet récent, le quota d'**IP externes**
-   est souvent de 8 par région, soit à peine 3 participants sur un lab. Demandez l'augmentation
-   à l'avance (IAM et administration > Quotas).
-
-### Différences avec AWS
-
-- **Pas d'identifiants cloud sur les VMs** : aucune n'a de compte de service. Le master partage
-  le kubeconfig et la commande `kubeadm join` par SSH (clé propre au lab) au lieu de S3.
-- **Types de machine** : t3.small → e2-small, t3.medium → e2-medium, t3.large → e2-standard-2
-  (mêmes vCPU et mémoire).
-- **Noms des nœuds** : les instances s'appellent `cks-<participant>-<lab>-…` ; les nœuds
-  Kubernetes portent ce nom (au lieu de `ip-10-…` sur AWS).
-- **Lab 101** : `169.254.169.254` est le serveur de métadonnées GCE ; les vérifications sont
-  identiques (accessibilité réseau), voir la note dans l'énoncé.
-- **Scripts de démarrage** : ceux de `terraform/modules/gcp_*/template/` sont dérivés des scripts
-  AWS. Si le dépôt amont modifie ces derniers, régénérez-les :
-  ```bash
-  python3 terraform/modules/gcp_common/derive_templates.py terraform/modules
-  ```
-
-### Relancer un participant, vérifier le nettoyage
-
-Sur Google Cloud, le Makefile n'est pas utilisé : pour relancer un seul participant, utilisez un
-fichier de participants qui ne contient que lui :
+The logs of each deployment are in `training/logs/<lab>/<participant>.<action>.log`. To
+redeploy a single participant, use a participant file that only contains them:
 
 ```bash
 echo p03 > /tmp/p03.txt
 PARTICIPANTS_FILE=/tmp/p03.txt training/classroom.sh up 107
 ```
 
-Pour vérifier qu'il ne reste aucune VM :
+Variables given on the command line take precedence over `training/classroom.env`.
+
+**Costs**: remember to run `down` at the end of the day. To check that nothing is left on AWS:
 
 ```bash
-gcloud compute instances list --project <id-du-projet> --filter="name~^cks-"
+make cmdb_get_env_all
+```
+
+## On Google Cloud
+
+With `CKS_CLOUD="gcp"` in `training/classroom.env`, the same commands (`preflight`, `up`,
+`access`, `down`) deploy labs 101-115 and the LFS460 VMs on Google Cloud. The mock exams
+(`mock/01-04`) stay on AWS.
+
+### Setup
+
+1. **Project**: create one dedicated to the course, with billing enabled, then enable the
+   Compute Engine API:
+   ```bash
+   gcloud services enable compute.googleapis.com --project <project-id>
+   ```
+2. **Credentials for Terraform**:
+   ```bash
+   gcloud auth application-default login
+   ```
+3. **Configuration**: fill in `CKS_GCP_PROJECT` and `CKS_GCP_STATE_BUCKET` (the state bucket is
+   created by `classroom.sh up` if missing), plus `CKS_REPO` / `CKS_REPO_REF` as on AWS.
+4. **Region**: if your organization restricts resource locations
+   (`constraints/gcp.resourceLocations`), set `CKS_GCP_REGION` / `CKS_GCP_ZONE` to an allowed
+   region, otherwise the state bucket and the VMs cannot be created. To see the allowed values:
+   ```bash
+   gcloud resource-manager org-policies describe gcp.resourceLocations --project <project-id> --effective
+   ```
+5. **Tools**: `terraform`, `terragrunt` (0.73.x or 1.x), `gcloud`, `jq`.
+6. **Quotas**: the preflight compares the need with the project quotas (VPC networks, firewall
+   rules) and the regional ones (vCPUs, external IPs). On a recent project, the **external IP**
+   quota is often 8 per region, barely enough for 3 participants on one lab. Request increases in
+   advance (IAM & Admin > Quotas).
+
+### Differences with AWS
+
+- **No cloud credentials on the VMs**: none has a service account. The master shares the
+  kubeconfig and the `kubeadm join` command over SSH (lab-specific key) instead of S3.
+- **Machine types**: t3.small → e2-small, t3.medium → e2-medium, t3.large → e2-standard-2
+  (same vCPUs and memory).
+- **Node names**: the instances are called `cks-<participant>-<lab>-…`; the Kubernetes nodes
+  carry that name (instead of `ip-10-…` on AWS).
+- **Lab 101**: `169.254.169.254` is the GCE metadata server; the checks are identical (network
+  reachability), see the note in the instructions.
+- **Boot scripts**: the ones in `terraform/modules/gcp_*/template/` are derived from the AWS
+  scripts. If the upstream repository changes the latter, regenerate them:
+  ```bash
+  python3 terraform/modules/gcp_common/derive_templates.py terraform/modules
+  ```
+
+### Checking the cleanup
+
+To check that no VM is left:
+
+```bash
+gcloud compute instances list --project <project-id> --filter="name~^cks-"
 ```

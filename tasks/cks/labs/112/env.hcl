@@ -8,8 +8,8 @@ locals {
   repo_ref = get_env("CKS_REPO_REF", "master")
   raw_base = "https://raw.githubusercontent.com/${local.repo}/${local.repo_ref}"
 
-  questions_list    = "https://github.com/${local.repo}/blob/${local.repo_ref}/tasks/cks/labs/112/README_FR.MD"
-  solutions_scripts = "https://github.com/${local.repo}/blob/${local.repo_ref}/tasks/cks/labs/112/worker/files/solutions/1_FR.MD"
+  questions_list    = "https://github.com/${local.repo}/blob/${local.repo_ref}/tasks/cks/labs/112/README.MD"
+  solutions_scripts = "https://github.com/${local.repo}/blob/${local.repo_ref}/tasks/cks/labs/112/worker/files/solutions/1.MD"
   solutions_video   = "Not ready yet"
   debug_output      = "false"
   region            = "eu-central-1"

@@ -1,170 +1,170 @@
-# Fiche des labs CKS : les dérouler soi-même
+# CKS labs sheet: running them yourself
 
-Liens vers les énoncés et solutions en anglais sur le fork
+Links point to the instructions and solutions on the fork
 [GuillaumeRemyCSI/cks@formation-lfs460](https://github.com/GuillaumeRemyCSI/cks/tree/formation-lfs460).
-Tous les labs ont été testés sur Google Cloud (europe-west6) le 2026-11-02 : déploiement, nœuds
-`Ready` en Kubernetes 1.35.2 et `check_result` fonctionnent. Les solutions, elles, restent à
-dérouler : c'est l'objet de cette fiche.
+All labs were tested on Google Cloud (europe-west6) on 2026-11-02: deployment, nodes `Ready` in
+Kubernetes 1.35.2 and `check_result` work. The solutions themselves still have to be run end to
+end: that is what this sheet is for.
 
-## Déployer un lab pour soi seul
+## Deploying a lab for yourself
 
-Avec un fichier de participants qui ne contient que vous :
+With a participant file that only contains you:
 
 ```bash
-echo formateur > /tmp/formateur.txt
+echo trainer > /tmp/trainer.txt
 ```
 
 ```bash
-cd ~/code/cks && PARTICIPANTS_FILE=/tmp/formateur.txt training/classroom.sh up 107
+cd ~/code/cks && PARTICIPANTS_FILE=/tmp/trainer.txt training/classroom.sh up 107
 ```
 
-La fiche d'accès (IP du poste de travail et mot de passe) est dans
-`training/out/107/formateur.txt`. Comptez 10 à 15 minutes, puis :
+The access sheet (IP of the work PC and password) is in `training/out/107/trainer.txt`.
+Allow 10 to 15 minutes, then:
 
 ```bash
 ssh ubuntu@<ip>
 ```
 
-Sur le poste de travail :
+On the work PC:
 
-- `tail -f /var/log/cloud-init-output.log` : attendre la fin de l'initialisation ;
-- `source ~/.bashrc`, puis `kubectl get nodes` ;
-- `check_result` : score et indices (`HINT`) ; `time_left` : temps restant ;
-- `ssh <nom-du-nœud>` pour aller sur un nœud (noms donnés par `kubectl get nodes`).
+- `tail -f /var/log/cloud-init-output.log`: wait for the end of the initialization;
+- `source ~/.bashrc`, then `kubectl get nodes`;
+- `check_result`: score and hints (`HINT`); `time_left`: remaining time;
+- `ssh <node-name>` to log in to a node (names given by `kubectl get nodes`).
 
-Une fois le lab terminé, détruisez-le :
+When you are done with the lab, destroy it:
 
 ```bash
-cd ~/code/cks && PARTICIPANTS_FILE=/tmp/formateur.txt training/classroom.sh down 107
+cd ~/code/cks && PARTICIPANTS_FILE=/tmp/trainer.txt training/classroom.sh down 107
 ```
 
-## Vue d'ensemble
+## Overview
 
-| Lab | Thème | Domaine CKS | Chapitres LFS460 | VMs | Durée | Énoncé | Solution | Fait |
+| Lab | Topic | CKS domain | LFS460 chapters | VMs | Timer | Instructions | Solution | Done |
 |---|---|---|---|---|---|---|---|---|
 | 101 | NetworkPolicy, isolation, metadata | Cluster Setup | 6 | 2 | 6 h | [EN][e101] | [EN][s101] | ☐ |
 | 102 | CiliumNetworkPolicy L3/L4/L7, Hubble | Cluster Setup | 6 | 2 | 6 h | [EN][e102] | [EN][s102] | ☐ |
-| 103 | CIS/kube-bench, Ingress TLS, binaires | Cluster Setup | 2, 4, 6 | 3 | 6 h | [EN][e103] | [EN][s103] | ☐ |
+| 103 | CIS/kube-bench, Ingress TLS, binaries | Cluster Setup | 2, 4, 6 | 3 | 6 h | [EN][e103] | [EN][s103] | ☐ |
 | 104 | RBAC, ServiceAccount, anonymous-auth | Cluster Hardening | 5, 8 | 2 | 6 h | [EN][e104] | [EN][s104] | ☐ |
-| 105 | Durcissement de l'OS et du daemon Docker | System Hardening | (hors slides) | 3 | 6 h | [EN][e105] | [EN][s105] | ☐ |
-| 106 | AppArmor et seccomp | System Hardening | 7 | 2 | 6 h | [EN][e106] | [EN][s106] | ☐ |
+| 105 | OS and Docker daemon hardening | System Hardening | (not in the slides) | 3 | 6 h | [EN][e105] | [EN][s105] | ☐ |
+| 106 | AppArmor and seccomp | System Hardening | 7 | 2 | 6 h | [EN][e106] | [EN][s106] | ☐ |
 | 107 | Pod Security Admission | Microservice Vulnerabilities | 5 | 2 | 6 h | [EN][e107] | [EN][s107] | ☐ |
 | 108 | Kyverno, Gatekeeper, ImagePolicyWebhook | Microservice Vulnerabilities | 4, 5 | 2 | 6 h | [EN][e108] | [EN][s108] | ☐ |
-| 109 | Chiffrement des Secrets dans etcd | Microservice Vulnerabilities | 5 | 2 | 6 h | [EN][e109] | [EN][s109] | ☐ |
-| 110 | gVisor, WireGuard Cilium, mTLS Istio | Microservice Vulnerabilities | 3, 6 | 3 | 6 h | [EN][e110] | [EN][s110] | ☐ |
-| 111 | Analyse d'images, SBOM, supply chain | Supply Chain Security | 3, 7 | 2 | 6 h | [EN][e111] | [EN][s111] | ☐ |
-| 112 | Falco, audit logs, filesystem immuable | Monitoring & Runtime | 5, 7, 8 | 2 | 6 h | [EN][e112] | [EN][s112] | ☐ |
-| 113 | Montée de version kubeadm 1.35 → 1.36 | Cluster Hardening | 4 (théorie) | 3 | 2 h | [EN][e113] | [EN][s113] | ☐ |
-| 114 | Contextes kubeconfig, certificats clients | Cluster Hardening | (hors slides) | 2 | 6 h | [EN][e114] | [EN][s114] | ☐ |
-| 115 | Cilium sans kube-proxy, Mutual Auth | Cluster Setup | 6 | 2 | 6 h | [EN][e115] | [EN][s115] | ☐ |
+| 109 | Encrypting Secrets in etcd | Microservice Vulnerabilities | 5 | 2 | 6 h | [EN][e109] | [EN][s109] | ☐ |
+| 110 | gVisor, Cilium WireGuard, Istio mTLS | Microservice Vulnerabilities | 3, 6 | 3 | 6 h | [EN][e110] | [EN][s110] | ☐ |
+| 111 | Image analysis, SBOM, supply chain | Supply Chain Security | 3, 7 | 2 | 6 h | [EN][e111] | [EN][s111] | ☐ |
+| 112 | Falco, audit logs, immutable filesystem | Monitoring & Runtime | 5, 7, 8 | 2 | 6 h | [EN][e112] | [EN][s112] | ☐ |
+| 113 | kubeadm upgrade 1.35 → 1.36 | Cluster Hardening | 4 (theory) | 3 | 2 h | [EN][e113] | [EN][s113] | ☐ |
+| 114 | kubeconfig contexts, client certificates | Cluster Hardening | (not in the slides) | 2 | 6 h | [EN][e114] | [EN][s114] | ☐ |
+| 115 | Cilium without kube-proxy, Mutual Auth | Cluster Setup | 6 | 2 | 6 h | [EN][e115] | [EN][s115] | ☐ |
 
-La durée est celle du minuteur `time_left` (après quoi le kubeconfig est retiré), pas le temps
-nécessaire : prévoyez plutôt 1 h à 2 h par lab pour le dérouler.
+The timer is the `time_left` countdown (after which the kubeconfig is removed), not the time you
+need: plan 1 to 2 hours per lab to run it.
 
-## Détail par lab
+## Lab by lab
 
 ### 101 - NetworkPolicy: default-deny, isolation, and cloud metadata
 
-- [Énoncé][e101] · [Solution][s101] · 7 tâches
-- Sur GCP, `169.254.169.254` est le serveur de métadonnées GCE : même comportement à observer
-  (note dans l'énoncé).
-- Testé en entier côté plateforme : DNS, API, métadonnées et `check_result` vérifiés depuis un pod.
+- [Instructions][e101] · [Solution][s101] · 7 tasks
+- On GCP, `169.254.169.254` is the GCE metadata server: the behaviour to observe is the same
+  (note in the instructions).
+- Fully checked on the platform side: DNS, API, metadata and `check_result` tested from a pod.
 
 ### 102 - CiliumNetworkPolicy: L3/L4/L7, DNS-aware egress, and Hubble
 
-- [Énoncé][e102] · [Solution][s102] · 6 tâches
-- À dérouler en priorité : Cilium dépend du réseau du cloud.
+- [Instructions][e102] · [Solution][s102] · 6 tasks
+- Run it first: Cilium depends on the cloud network.
 
 ### 103 - CIS/kube-bench, Secure Ingress TLS, and binary verification
 
-- [Énoncé][e103] · [Solution][s103] · 10 tâches
-- Cours : [Chapter 07. CIS Benchmark and kube-bench][c07],
+- [Instructions][e103] · [Solution][s103] · 10 tasks
+- Course: [Chapter 07. CIS Benchmark and kube-bench][c07],
   [Chapter 08. Secure Ingress with TLS][c08],
   [Chapter 09. Insecure component arguments, TLS hardening, and binary verification][c09]
-- Cluster à deux nœuds (control-plane + worker). Le script du worker a été corrigé
-  (il ne se terminait jamais) : à vérifier que la tâche 10, sur le worker, se passe bien.
+- Two-node cluster (control-plane + worker). The worker script was fixed (it never finished):
+  check that task 10, on the worker, goes well.
 
 ### 104 - Restricting access to the Kubernetes API
 
-- [Énoncé][e104] · [Solution][s104] · 12 tâches
+- [Instructions][e104] · [Solution][s104] · 12 tasks
 
 ### 105 - System Hardening of the OS and Docker daemon security
 
-- [Énoncé][e105] · [Solution][s105] · 10 tâches
-- Cours : [Chapter 14. Minimizing host OS footprint and runtime daemon security][c14],
+- [Instructions][e105] · [Solution][s105] · 10 tasks
+- Course: [Chapter 14. Minimizing host OS footprint and runtime daemon security][c14],
   [Chapter 15. Host least privilege and minimizing external network access][c15]
-- VM supplémentaire `docker-host`, avec un daemon Docker volontairement exposé en TCP/2375.
+- Extra `docker-host` VM, with a Docker daemon deliberately exposed on TCP/2375.
 
 ### 106 - AppArmor and seccomp
 
-- [Énoncé][e106] · [Solution][s106] · 9 tâches
-- Cours : [Chapter 16. AppArmor][c16], [Chapter 17. seccomp][c17],
+- [Instructions][e106] · [Solution][s106] · 9 tasks
+- Course: [Chapter 16. AppArmor][c16], [Chapter 17. seccomp][c17],
   [Chapter 03. Linux security mechanisms under the hood][c03]
-- Ubuntu 24.04 embarque AppArmor 4 : vérifier que les profils de la solution se chargent.
+- Ubuntu 24.04 ships AppArmor 4: check that the solution's profiles load.
 
 ### 107 - Pod Security Admission
 
-- [Énoncé][e107] · [Solution][s107] · 7 tâches
-- Les labels PSA sont en `v1.35`, la version du cluster et de l'examen.
+- [Instructions][e107] · [Solution][s107] · 7 tasks
+- The PSA labels use `v1.35`, the version of the cluster and of the exam.
 
 ### 108 - Admission policies with Kyverno
 
-- [Énoncé][e108] · [Solution][s108] · 7 tâches
-- Couvre aussi Gatekeeper (tâche 7) et ImagePolicyWebhook (tâche 6), exercices 4.5 et 5.5
-  des slides.
+- [Instructions][e108] · [Solution][s108] · 7 tasks
+- Also covers Gatekeeper (task 7) and ImagePolicyWebhook (task 6), exercises 4.5 and 5.5 of the
+  slides.
 
 ### 109 - Encrypting Secrets in etcd and minimal access
 
-- [Énoncé][e109] · [Solution][s109] · 5 tâches
+- [Instructions][e109] · [Solution][s109] · 5 tasks
 
 ### 110 - gVisor RuntimeClass, Cilium WireGuard, and Istio mTLS
 
-- [Énoncé][e110] · [Solution][s110] · 6 tâches
-- Cours : [Chapter 22. Container Runtime Sandbox][c22],
+- [Instructions][e110] · [Solution][s110] · 6 tasks
+- Course: [Chapter 22. Container Runtime Sandbox][c22],
   [Chapter 23. Pod-to-Pod encryption and mTLS][c23]
-- Nœud dédié `gvisor` ; à dérouler en priorité (gVisor, WireGuard et Istio dépendent de la VM et
-  du réseau).
+- Dedicated `gvisor` node; run it first (gVisor, WireGuard and Istio depend on the VM and the
+  network).
 
-### 111 - image analysis, static fixes, and supply-chain evidence
+### 111 - Image analysis, static fixes, and supply-chain evidence
 
-- [Énoncé][e111] · [Solution][s111] · 8 tâches
-- Les participants utilisent podman en rootless : point à surveiller sur Ubuntu 24.04
-  (restrictions AppArmor sur les user namespaces).
-- Le plus long à initialiser (téléchargement des outils et des images à scanner).
+- [Instructions][e111] · [Solution][s111] · 8 tasks
+- The participants use rootless podman: watch out on Ubuntu 24.04 (AppArmor restrictions on user
+  namespaces).
+- The slowest to initialize (downloads the tools and the images to scan).
 
 ### 112 - Runtime: Falco, audit logs, and an immutable root filesystem
 
-- [Énoncé][e112] · [Solution][s112] · 10 tâches
-- Cours : [Chapter 29. Falco][c29], [Chapter 30. Threat detection][c30],
+- [Instructions][e112] · [Solution][s112] · 10 tasks
+- Course: [Chapter 29. Falco][c29], [Chapter 30. Threat detection][c30],
   [Chapter 31. Container immutability at runtime][c31], [Chapter 32. Kubernetes audit logs][c32],
   [Chapter 26. Supply-chain security][c26]
 
 ### 113 - Upgrading a Kubernetes Cluster with kubeadm
 
-- [Énoncé][e113] · [Solution][s113] · 4 tâches
-- Cours : [Chapter 13. Upgrading Kubernetes to remediate vulnerabilities][c13]
-- Le cluster part de 1.35.2 et se met à jour en 1.36.x. Minuteur de 2 h.
-- Script du worker corrigé comme pour le 103.
+- [Instructions][e113] · [Solution][s113] · 4 tasks
+- Course: [Chapter 13. Upgrading Kubernetes to remediate vulnerabilities][c13]
+- The cluster starts on 1.35.2 and is upgraded to 1.36.x. 2-hour timer.
+- Worker script fixed as for lab 103.
 
 ### 114 - Kubeconfig contexts, client certificates, and API exposure
 
-- [Énoncé][e114] · [Solution][s114] · 4 tâches
-- Au démarrage, `kubectl` pointe volontairement sur `staging.cks114.invalid` : c'est l'exercice.
+- [Instructions][e114] · [Solution][s114] · 4 tasks
+- At startup, `kubectl` deliberately points to `staging.cks114.invalid`: that is the exercise.
 
 ### 115 - Cilium bootstrap, kube-proxy replacement, and Mutual Authentication
 
-- [Énoncé][e115] · [Solution][s115] · 6 tâches
-- Au démarrage, CoreDNS est `Pending` : c'est normal, il faut installer Cilium (tâche 1).
-- À dérouler en priorité (Cilium sans kube-proxy).
+- [Instructions][e115] · [Solution][s115] · 6 tasks
+- At startup, CoreDNS is `Pending`: this is expected, you have to install Cilium (task 1).
+- Run it first (Cilium without kube-proxy).
 
-## Ordre suggéré pour vos essais
+## Suggested order for your runs
 
-1. Les labs qui dépendent le plus du cloud : **115, 102, 110**, puis **113**.
-2. Ceux qui touchent à l'OS des nœuds (Ubuntu 24.04) : **106, 105, 111, 112**.
-3. Les autres : 101, 103, 104, 107, 108, 109, 114.
+1. The labs that depend most on the cloud: **115, 102, 110**, then **113**.
+2. The ones that touch the node OS (Ubuntu 24.04): **106, 105, 111, 112**.
+3. The others: 101, 103, 104, 107, 108, 109, 114.
 
-Si un lab bloque, relevez le message `HINT` de `check_result` et la fin de
-`/var/log/cloud-init-output.log` sur la VM concernée.
+If a lab gets stuck, note the `HINT` message of `check_result` and the end of
+`/var/log/cloud-init-output.log` on the VM concerned.
 
 [e101]: https://github.com/GuillaumeRemyCSI/cks/blob/formation-lfs460/tasks/cks/labs/101/README.MD
 [s101]: https://github.com/GuillaumeRemyCSI/cks/blob/formation-lfs460/tasks/cks/labs/101/worker/files/solutions/1.MD

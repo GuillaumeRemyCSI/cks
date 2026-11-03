@@ -1,4 +1,4 @@
-# Données propres à une session (contiennent des mots de passe SSH).
+# Session-specific data (contains SSH passwords).
 classroom.env
 participants.txt
 out/

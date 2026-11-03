@@ -1,5 +1,5 @@
-# Un identifiant par ligne : a-z, 0-9 et '-', 20 caractères max.
-# Il sert à nommer les ressources AWS : pas de nom complet ni d'e-mail.
+# One id per line: a-z, 0-9 and '-', 20 characters max.
+# It is used to name cloud resources: no full name or e-mail address.
 p01
 p02
 p03
