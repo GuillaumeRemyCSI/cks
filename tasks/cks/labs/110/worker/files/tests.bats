@@ -237,7 +237,7 @@ PY' 2>/dev/null || true)
   valid=1
   [[ "$config_version" == "true" && "$ds_ready" == "$ds_desired" && "$ds_desired" -ge 2 && -n "$ds_image" ]] || valid=0
   [[ "$cli_version" == *0.19.7* ]] || valid=0
-  grep -Eq '^Kubernetes=v?1[.]36' "$versions" 2>/dev/null || valid=0
+  grep -Eq '^Kubernetes=v?1[.]35' "$versions" 2>/dev/null || valid=0
   grep -Fqx "Cilium agent=$ds_image" "$versions" 2>/dev/null || valid=0
   grep -Eq '^Cilium CLI=v?0[.]19[.]7$' "$versions" 2>/dev/null || valid=0
   grep -Fq 'cilium-dbg encrypt status' "$ARTIFACTS/4/cilium-encrypt-status.txt" 2>/dev/null || valid=0
