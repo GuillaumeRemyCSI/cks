@@ -2,9 +2,25 @@
 
 Links point to the instructions and solutions on the fork
 [GuillaumeRemyCSI/cks@formation-lfs460](https://github.com/GuillaumeRemyCSI/cks/tree/formation-lfs460).
-All labs were tested on Google Cloud (europe-west6) on 2026-11-02: deployment, nodes `Ready` in
-Kubernetes 1.35.2 and `check_result` work. The solutions themselves still have to be run end to
-end: that is what this sheet is for.
+On 2026-11-03 every reference solution was run end to end on Google Cloud (europe-west6): all 15
+labs reach `check_result` = 100% (labs 105 and 110 after fixing their tests, see below).
+
+### Notes from the end-to-end run
+
+- **105**: the UFW and Docker checks were fixed for Ubuntu 24.04 (numeric protocols in the
+  iptables output, systemd restart rate limit). Pods still reach the API with UFW on: Calico
+  accepts pod-to-host traffic before UFW.
+- **110**: the test still expected Kubernetes 1.36 in `tool-versions.txt`; fixed.
+- **108, task 6 (not graded)**: the fail-closed demo can let one Pod through if run immediately
+  after detaching the Service, before kube-proxy has removed the endpoints. Wait a few seconds and
+  run the probe again.
+- **114, task 3**: `kubectl set env` triggers a rollout, so the first NodePort request can fail
+  while the Service has no ready endpoint. Run `kubectl -n cks-114 rollout status
+  deployment/backend` before the test.
+- **108**: the work PC has no SSH settings for the node names, so the first `ssh <node>` asks to
+  confirm the host key: answer `yes`.
+- **111**: rootless podman works on Ubuntu 24.04. The lab is the slowest to initialize: wait for
+  `cloud-init status` to report `done` before starting.
 
 ## Deploying a lab for yourself
 
@@ -81,8 +97,8 @@ need: plan 1 to 2 hours per lab to run it.
 - Course: [Chapter 07. CIS Benchmark and kube-bench][c07],
   [Chapter 08. Secure Ingress with TLS][c08],
   [Chapter 09. Insecure component arguments, TLS hardening, and binary verification][c09]
-- Two-node cluster (control-plane + worker). The worker script was fixed (it never finished):
-  check that task 10, on the worker, goes well.
+- Two-node cluster (control-plane + worker). The worker script was fixed (it never finished);
+  task 10 on the worker was verified.
 
 ### 104 - Restricting access to the Kubernetes API
 
@@ -128,8 +144,6 @@ need: plan 1 to 2 hours per lab to run it.
 ### 111 - Image analysis, static fixes, and supply-chain evidence
 
 - [Instructions][e111] · [Solution][s111] · 8 tasks
-- The participants use rootless podman: watch out on Ubuntu 24.04 (AppArmor restrictions on user
-  namespaces).
 - The slowest to initialize (downloads the tools and the images to scan).
 
 ### 112 - Runtime: Falco, audit logs, and an immutable root filesystem
