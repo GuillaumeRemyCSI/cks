@@ -233,12 +233,14 @@ control_plane() {
   # EXACTLY that one row and nothing else - not "completely empty" and not "any row is a
   # fail" - any OTHER/additional row there (e.g. a raw bypass rule hand-added to
   # user6.rules) is still a fail.
-  ufw_loopback_ok=$(grep -Eq '^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+all[[:space:]]+--[[:space:]]+lo[[:space:]]+\*[[:space:]]+0\.0\.0\.0/0[[:space:]]+0\.0\.0\.0/0[[:space:]]*$' <<<"$ufw_user_input_block" && echo yes || echo no)
-  ufw_ssh_worker_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+tcp[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_worker}(/32)?[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:22[[:space:]]*\$" <<<"$ufw_user_input_block" && echo yes || echo no)
-  ufw_api_worker_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+tcp[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_worker}(/32)?[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:6443[[:space:]]*\$" <<<"$ufw_user_input_block" && echo yes || echo no)
-  ufw_api_node_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+tcp[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_node}(/32)?[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:6443[[:space:]]*\$" <<<"$ufw_user_input_block" && echo yes || echo no)
-  ufw_api_podcidr_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+tcp[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_pod_cidr}[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:6443[[:space:]]*\$" <<<"$ufw_user_input_block" && echo yes || echo no)
-  ufw6_loopback_ok=$(grep -Eq '^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+all[[:space:]]+lo[[:space:]]+\*[[:space:]]+::/0[[:space:]]+::/0[[:space:]]*$' <<<"$ufw6_user_input_block" && echo yes || echo no)
+  # The protocol column is a name (all/tcp) with older iptables, a number (0/6) with the
+  # iptables 1.8.10 of Ubuntu 24.04: accept both.
+  ufw_loopback_ok=$(grep -Eq '^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+(all|0)[[:space:]]+--[[:space:]]+lo[[:space:]]+\*[[:space:]]+0\.0\.0\.0/0[[:space:]]+0\.0\.0\.0/0[[:space:]]*$' <<<"$ufw_user_input_block" && echo yes || echo no)
+  ufw_ssh_worker_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+(tcp|6)[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_worker}(/32)?[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:22[[:space:]]*\$" <<<"$ufw_user_input_block" && echo yes || echo no)
+  ufw_api_worker_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+(tcp|6)[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_worker}(/32)?[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:6443[[:space:]]*\$" <<<"$ufw_user_input_block" && echo yes || echo no)
+  ufw_api_node_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+(tcp|6)[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_node}(/32)?[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:6443[[:space:]]*\$" <<<"$ufw_user_input_block" && echo yes || echo no)
+  ufw_api_podcidr_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+(tcp|6)[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_pod_cidr}[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:6443[[:space:]]*\$" <<<"$ufw_user_input_block" && echo yes || echo no)
+  ufw6_loopback_ok=$(grep -Eq '^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+(all|0)[[:space:]]+(--[[:space:]]+)?lo[[:space:]]+\*[[:space:]]+::/0[[:space:]]+::/0[[:space:]]*$' <<<"$ufw6_user_input_block" && echo yes || echo no)
 
   ufw_effective_matches_declared="no"
   if [[ "$ufw_user_chains_status" -eq 0 && "$ufw_user_chain_rule_count" == "$total_added_allow" \
@@ -320,12 +322,12 @@ control_plane() {
       reload_ufw6_user_input_block=$(awk '/^Chain ufw6-user-input /{flag=1; next} /^Chain /{flag=0} flag' <<<"$output")
       reload_ufw6_user_chain_rule_count=$(grep -vE '^[[:space:]]*pkts[[:space:]]|^[[:space:]]*$' <<<"$reload_ufw6_user_input_block" | grep -cE '.' || true)
 
-      reload_ufw_loopback_ok=$(grep -Eq '^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+all[[:space:]]+--[[:space:]]+lo[[:space:]]+\*[[:space:]]+0\.0\.0\.0/0[[:space:]]+0\.0\.0\.0/0[[:space:]]*$' <<<"$reload_ufw_user_input_block" && echo yes || echo no)
-      reload_ufw_ssh_worker_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+tcp[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_worker}(/32)?[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:22[[:space:]]*\$" <<<"$reload_ufw_user_input_block" && echo yes || echo no)
-      reload_ufw_api_worker_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+tcp[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_worker}(/32)?[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:6443[[:space:]]*\$" <<<"$reload_ufw_user_input_block" && echo yes || echo no)
-      reload_ufw_api_node_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+tcp[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_node}(/32)?[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:6443[[:space:]]*\$" <<<"$reload_ufw_user_input_block" && echo yes || echo no)
-      reload_ufw_api_podcidr_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+tcp[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_pod_cidr}[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:6443[[:space:]]*\$" <<<"$reload_ufw_user_input_block" && echo yes || echo no)
-      reload_ufw6_loopback_ok=$(grep -Eq '^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+all[[:space:]]+lo[[:space:]]+\*[[:space:]]+::/0[[:space:]]+::/0[[:space:]]*$' <<<"$reload_ufw6_user_input_block" && echo yes || echo no)
+      reload_ufw_loopback_ok=$(grep -Eq '^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+(all|0)[[:space:]]+--[[:space:]]+lo[[:space:]]+\*[[:space:]]+0\.0\.0\.0/0[[:space:]]+0\.0\.0\.0/0[[:space:]]*$' <<<"$reload_ufw_user_input_block" && echo yes || echo no)
+      reload_ufw_ssh_worker_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+(tcp|6)[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_worker}(/32)?[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:22[[:space:]]*\$" <<<"$reload_ufw_user_input_block" && echo yes || echo no)
+      reload_ufw_api_worker_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+(tcp|6)[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_worker}(/32)?[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:6443[[:space:]]*\$" <<<"$reload_ufw_user_input_block" && echo yes || echo no)
+      reload_ufw_api_node_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+(tcp|6)[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_node}(/32)?[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:6443[[:space:]]*\$" <<<"$reload_ufw_user_input_block" && echo yes || echo no)
+      reload_ufw_api_podcidr_ok=$(grep -Eq "^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+(tcp|6)[[:space:]]+--[[:space:]]+\*[[:space:]]+\*[[:space:]]+${esc_pod_cidr}[[:space:]]+0\.0\.0\.0/0[[:space:]]+tcp dpt:6443[[:space:]]*\$" <<<"$reload_ufw_user_input_block" && echo yes || echo no)
+      reload_ufw6_loopback_ok=$(grep -Eq '^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+ACCEPT[[:space:]]+(all|0)[[:space:]]+(--[[:space:]]+)?lo[[:space:]]+\*[[:space:]]+::/0[[:space:]]+::/0[[:space:]]*$' <<<"$reload_ufw6_user_input_block" && echo yes || echo no)
 
       reload_ufw_effective_matches_declared="no"
       if [[ "$reload_ufw_user_chains_status" -eq 0 && "$reload_ufw_user_chain_rule_count" == "$total_added_allow" \
@@ -446,7 +448,9 @@ control_plane() {
   # proves the fix survives a restart, not just that the currently-running process
   # happens to match. A student who only stopped Docker (instead of fixing the config)
   # would fail here because Docker must come back up and actually work afterward.
-  run ssh "${SSH_OPTS[@]}" docker-host 'sudo systemctl daemon-reload && sudo systemctl restart docker.socket && sudo systemctl restart docker.service'
+  # reset-failed first: the student's own restarts (task 6) right before check_result can hit
+  # systemd's start rate limit (service-start-limit-hit) and fail this restart for no fault of theirs.
+  run ssh "${SSH_OPTS[@]}" docker-host 'sudo systemctl reset-failed docker.socket docker.service 2>/dev/null; sudo systemctl daemon-reload && sudo systemctl restart docker.socket && sudo systemctl restart docker.service'
   reload_status=$status
   run ssh "${SSH_OPTS[@]}" docker-host '
     set -e
