@@ -69,6 +69,11 @@ Each participant gets 2 vCPU / 8 GB VMs (t3.large or e2-standard-2) with the `st
 their nodes. These VMs have no cloud credentials and download nothing from the fork. You give
 the participants the credentials to download the course files (cm.lf.training) yourself.
 
+Validated on Google Cloud (2026-11-06) with the course tarball `LFS460_V1.35.2-u1`: exercises 4.2
+and 4.3 (`k8scp.sh`, `k8sWorker.sh`, `kubeadm join`, `setupscript.sh`) give two `Ready` nodes in
+v1.35.2 with Cilium, and pods on `cp` reach pods on `worker`. Both scripts stop once at
+`apt-get install containerd.io` (no `-y`): participants answer `Y`.
+
 ### How it works
 
 `up` runs the preflight, deploys `PARALLEL` participants at a time (allow 10-15 min per wave),
