@@ -31,7 +31,7 @@ echo trainer > /tmp/trainer.txt
 ```
 
 ```bash
-cd ~/code/cks && PARTICIPANTS_FILE=/tmp/trainer.txt training/classroom.sh up 107
+PARTICIPANTS_FILE=/tmp/trainer.txt training/classroom.sh up 107
 ```
 
 The access sheet (IP of the work PC and password) is in `training/out/107/trainer.txt`.
@@ -51,7 +51,7 @@ On the work PC:
 When you are done with the lab, destroy it:
 
 ```bash
-cd ~/code/cks && PARTICIPANTS_FILE=/tmp/trainer.txt training/classroom.sh down 107
+PARTICIPANTS_FILE=/tmp/trainer.txt training/classroom.sh down 107
 ```
 
 ## Overview

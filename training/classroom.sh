@@ -30,6 +30,11 @@ done
 for override in ${overrides[@]+"${overrides[@]}"}; do export "$override"; done
 
 PARTICIPANTS_FILE=${PARTICIPANTS_FILE:-$TRAINING_DIR/participants.txt}
+# A relative path is taken from the current directory if it exists there,
+# otherwise from the repository root, so the script works from any directory.
+if [[ "$PARTICIPANTS_FILE" != /* && ! -f "$PARTICIPANTS_FILE" ]]; then
+  PARTICIPANTS_FILE="$ROOT/$PARTICIPANTS_FILE"
+fi
 PARALLEL=${PARALLEL:-4}
 CKS_REPO_REF=${CKS_REPO_REF:-master}
 OUT_DIR="$TRAINING_DIR/out"
