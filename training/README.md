@@ -73,7 +73,7 @@ Validated on Google Cloud (2026-11-06) with the course tarball `LFS460_V1.35.2-u
 and 4.3 (`k8scp.sh`, `k8sWorker.sh`, `kubeadm join`, `setupscript.sh`) give two `Ready` nodes in
 v1.35.2 with Cilium, and pods on `cp` reach pods on `worker`. Both scripts stop once at
 `apt-get install containerd.io` (no `-y`): participants answer `Y`.
-Exercises 4.4 to 8.2 were run on 2026-11-07: results and the fixes participants need are in
+Exercises 2.1 to 8.2 were run on 2026-11-07: results and the fixes participants need are in
 [LFS460.md](LFS460.md).
 
 ### How it works
@@ -128,6 +128,46 @@ With `CKS_CLOUD="gcp"` in `training/classroom.env`, the same commands (`prefligh
    rules) and the regional ones (vCPUs, external IPs). On a recent project, the **external IP**
    quota is often 8 per region, barely enough for 3 participants on one lab. Request increases in
    advance (IAM & Admin > Quotas).
+
+### Costs and quotas for a 4-day class
+
+Estimates from the europe-west6 (Zurich) catalog prices, VMs + external IPs + pd-balanced disks,
+converted at 0.80 CHF/USD (no billing export available):
+
+| Environment | VMs | CHF/h per participant |
+|---|---|---|
+| lfs460-single | 1 × e2-standard-2 | 0.08 |
+| lfs460-cluster | 2 × e2-standard-2 | 0.16 |
+| Labs 101, 102, 104, 106-109, 111, 112, 114, 115 | e2-medium + e2-small | 0.07 |
+| Labs 103, 105, 113 | e2-medium + 2 × e2-small | 0.09-0.10 |
+| Lab 110 | 3 × e2-medium | 0.13 |
+
+Rule used with [SCHEDULE.md](SCHEDULE.md): **each evening's homework lab is deployed at noon and
+destroyed the next day at noon** (`down <lab>`); labs 101/107 stay until the end of day 4.
+Optional and after-course labs are deployed on demand (about 3 hours each).
+
+| Item | Per participant |
+|---|---|
+| lfs460-single (day 0 evening → day 2 noon) | ~6 CHF |
+| lfs460-cluster (day 1 evening → day 4 16:00) | ~11 CHF |
+| Core homework labs, destroyed the next day at noon | ~10 CHF |
+| Optional labs on demand | ~2-3 CHF |
+| **Total** | **~27 CHF** (≈ 110 CHF for 4 participants, plus the trainer) |
+
+Leaving every homework lab up until the end of the week would cost about 54 CHF per participant
+and does not fit the default quotas of project `formation-cks` (checked on 2026-11-07):
+
+| Quota | Limit | All labs left up (4 participants) | Destroyed the next day at noon |
+|---|---|---|---|
+| CPUS europe-west6 (E2 VMs count here) | 100 | 240 | 56 |
+| IN_USE_ADDRESSES europe-west6 | 69 | 120 | 28 |
+| NETWORKS (one VPC per environment) | 30 | 52 | 12 |
+
+Add the trainer's own environments and the `default` network. Shared-core e2-small/e2-medium are
+counted as 2 vCPUs each (to confirm with the quota usage after a first deployment). With the
+next-day rule, the remaining headroom (about 40 vCPUs, 16 networks) allows about 8 optional labs
+up at the same time for the whole class. To leave everything up, request CPUS 256,
+IN_USE_ADDRESSES 150 and NETWORKS 60 at least a week before the course.
 
 ### Differences with AWS
 
