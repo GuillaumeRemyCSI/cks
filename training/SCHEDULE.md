@@ -19,10 +19,13 @@ labs are deployed on request: ask the trainer.
 | 11:15-12:00 | Labs 2.1-2.4 (group discussion), 2.5 Use First Node |
 | 12:00-13:00 | Lunch |
 | 13:00-13:45 | Ch. 3 Preparing to Install |
-| 13:45-14:30 | Labs 3.1-3.5 (3.2 Trivy hands-on, the others reading and discussion) |
+| 13:45-14:30 | Labs 3.1-3.5 (3.2 Trivy hands-on, installed from the pinned release `.deb`; the others reading and discussion) |
 | 14:30-14:45 | Break |
-| 14:45-16:30 | Labs 3.6 Leverage Secure Runtimes (single-node install), 3.7 Kubescape |
-| 16:30-17:00 | Buffer, questions |
+| 14:45-16:45 | Labs 3.6 Leverage Secure Runtimes (single-node install, two known fixes: gVisor from its apt repository, `SystemdCgroup = true`), 3.7 Kubescape |
+| 16:45-17:00 | Questions |
+
+Known issues in chapter 3 (gVisor download 404, cgroup driver mismatch, pinned Trivy and Kubescape
+installs) and their fixes: see [LFS460.md](LFS460.md#36-gvisor-containerd-setuptxt).
 
 **Homework**
 - Core: [105][e105] OS and Docker daemon hardening (not covered by the slides, part of the CKS
