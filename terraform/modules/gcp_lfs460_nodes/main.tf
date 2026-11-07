@@ -66,9 +66,11 @@ resource "google_compute_firewall" "ssh" {
   source_ranges = var.access_cidrs
   target_tags   = [local.network_tag]
 
+  # NodePort range: the chapter 6 exercises (network policies, ingress) test
+  # services from the participant's machine.
   allow {
     protocol = "tcp"
-    ports    = ["22"]
+    ports    = ["22", "30000-32767"]
   }
 }
 

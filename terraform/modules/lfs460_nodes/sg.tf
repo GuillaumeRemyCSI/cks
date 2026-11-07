@@ -11,6 +11,16 @@ resource "aws_security_group" "nodes" {
     description = "ssh"
   }
 
+  # NodePort range: the chapter 6 exercises (network policies, ingress) test
+  # services from the participant's machine.
+  ingress {
+    from_port   = 30000
+    to_port     = 32767
+    protocol    = "tcp"
+    cidr_blocks = var.access_cidrs
+    description = "nodeport"
+  }
+
   # Kubernetes and the CNI need every port between cp and worker.
   ingress {
     from_port = 0
